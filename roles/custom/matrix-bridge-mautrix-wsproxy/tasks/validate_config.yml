@@ -20,3 +20,55 @@
     - "matrix_mautrix_wsproxy_syncproxy_homeserver_url"
     - "matrix_mautrix_wsproxy_syncproxy_database_hostname"
     - "matrix_mautrix_wsproxy_syncproxy_database_password"
+
+# Validation for multiple appservice configuration
+- name: Ensure appservice IDs are unique
+  ansible.builtin.assert:
+    that:
+      - matrix_mautrix_wsproxy_appservices | map(attribute='id') | list | length == matrix_mautrix_wsproxy_appservices | map(attribute='id') | list | unique | list | length
+    msg: "Duplicate appservice IDs found in matrix_mautrix_wsproxy_appservices. Each appservice must have a unique 'id' value."
+
+- name: Ensure bot usernames are unique
+  ansible.builtin.assert:
+    that:
+      - matrix_mautrix_wsproxy_appservices | map(attribute='bot_username') | list | length == matrix_mautrix_wsproxy_appservices | map(attribute='bot_username') | list | unique | list | length
+    msg: "Duplicate bot usernames found in matrix_mautrix_wsproxy_appservices. Each appservice must have a unique 'bot_username' value."
+
+- name: Ensure namespace prefixes are unique
+  ansible.builtin.assert:
+    that:
+      - matrix_mautrix_wsproxy_appservices | map(attribute='namespace_prefix') | list | length == matrix_mautrix_wsproxy_appservices | map(attribute='namespace_prefix') | list | unique | list | length
+    msg: "Duplicate namespace prefixes found in matrix_mautrix_wsproxy_appservices. Each appservice must have a unique 'namespace_prefix' value."
+
+- name: Ensure required appservice fields are present
+  ansible.builtin.assert:
+    that:
+      - item.id is defined and item.id != ''
+      - item.type is defined and item.type in ['imessage', 'androidsms']
+      - item.as_token is defined and item.as_token != ''
+      - item.hs_token is defined and item.hs_token != ''
+      - item.bot_username is defined and item.bot_username != ''
+      - item.namespace_prefix is defined and item.namespace_prefix != ''
+    msg: "Appservice '{{ item.id | default('unknown') }}' is missing required fields. Required fields: id, type (imessage/androidsms), as_token, hs_token, bot_username, namespace_prefix"
+  loop: "{{ matrix_mautrix_wsproxy_appservices }}"
+
+- name: Ensure appservice IDs contain only valid characters
+  ansible.builtin.assert:
+    that:
+      - item.id is match('^[a-zA-Z0-9_-]+$')
+    msg: "Appservice ID '{{ item.id }}' contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed."
+  loop: "{{ matrix_mautrix_wsproxy_appservices }}"
+
+- name: Ensure bot usernames contain only valid characters
+  ansible.builtin.assert:
+    that:
+      - item.bot_username is match('^[a-zA-Z0-9_-]+$')
+    msg: "Bot username '{{ item.bot_username }}' contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed."
+  loop: "{{ matrix_mautrix_wsproxy_appservices }}"
+
+- name: Ensure namespace prefixes contain only valid characters
+  ansible.builtin.assert:
+    that:
+      - item.namespace_prefix is match('^[a-zA-Z0-9_-]+$')
+    msg: "Namespace prefix '{{ item.namespace_prefix }}' contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed."
+  loop: "{{ matrix_mautrix_wsproxy_appservices }}"

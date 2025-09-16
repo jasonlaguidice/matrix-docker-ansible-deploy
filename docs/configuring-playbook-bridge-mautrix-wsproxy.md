@@ -36,6 +36,53 @@ matrix_mautrix_wsproxy_syncproxy_shared_secret: 'secret token from bridge'
 
 Note that the tokens must match what is compiled into the [mautrix-imessage](https://github.com/mautrix/imessage) bridge running on your Mac or Android device.
 
+### Multiple Bridge Instances (Advanced)
+
+For users who want to run multiple instances of the same bridge type (e.g., multiple iMessage bridges for different Apple IDs, or multiple Android SMS bridges for different devices), you can extend the configuration:
+
+```yaml
+matrix_mautrix_wsproxy_enabled: true
+
+# Configure default instances (required - these use the standard variables)
+matrix_mautrix_androidsms_appservice_token: 'primary-android-token'
+matrix_mautrix_androidsms_homeserver_token: 'primary-android-hs-token'
+matrix_mautrix_imessage_appservice_token: 'primary-imessage-token'
+matrix_mautrix_imessage_homeserver_token: 'primary-imessage-hs-token'
+matrix_mautrix_wsproxy_syncproxy_shared_secret: 'shared-secret'
+
+# Add additional bridge instances
+matrix_mautrix_wsproxy_appservices_additional:
+  - id: imessage2
+    type: imessage
+    as_token: 'imessage2-as-token'
+    hs_token: 'imessage2-hs-token'
+    bot_username: 'imessage2_bot'
+    namespace_prefix: 'imessage2'
+
+  - id: androidsms_secondary
+    type: androidsms
+    as_token: 'secondary-android-as-token'
+    hs_token: 'secondary-android-hs-token'
+    bot_username: 'androidsms_secondary_bot'
+    namespace_prefix: 'androidsms_secondary'
+```
+
+#### Configuration Parameters
+
+Each appservice entry supports the following parameters:
+
+- `id`: Unique identifier for the appservice (required)
+- `type`: Bridge type (`imessage` or `androidsms`) (required)
+- `as_token`: Application service token from your bridge client (required)
+- `hs_token`: Homeserver token for the appservice (required)
+- `bot_username`: Username for the bridge bot (required)
+- `namespace_prefix`: Prefix for user namespaces (required, must be unique)
+
+#### Important Notes
+
+1. **Token Management**: Each bridge instance must have unique tokens that match your device configuration
+2. **Unique Identifiers**: All `id`, `bot_username`, and `namespace_prefix` values must be unique across all appservices
+
 ### Adjusting the wsproxy URL (optional)
 
 By tweaking the `matrix_mautrix_wsproxy_hostname` variable, you can easily make the service available at a **different hostname** than the default one.

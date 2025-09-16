@@ -89,6 +89,39 @@ matrix_mautrix_imessage_homeserver_token: ''
 matrix_mautrix_androidsms_appservice_bot_username: androidsmsbot
 matrix_mautrix_imessage_appservice_bot_username: imessagebot
 
+# New flexible appservices list structure
+# This combines default appservices (for backward compatibility) with additional user-defined appservices
+matrix_mautrix_wsproxy_appservices: "{{ matrix_mautrix_wsproxy_appservices_default + matrix_mautrix_wsproxy_appservices_additional }}"
+
+# Default appservices (maintains backward compatibility with existing configurations)
+# These use the existing variables so current users don't need to change anything
+matrix_mautrix_wsproxy_appservices_default:
+  - id: androidsms
+    type: androidsms
+    as_token: "{{ matrix_mautrix_androidsms_appservice_token }}"
+    hs_token: "{{ matrix_mautrix_androidsms_homeserver_token }}"
+    bot_username: "{{ matrix_mautrix_androidsms_appservice_bot_username }}"
+    namespace_prefix: "androidsms"
+
+  - id: imessage
+    type: imessage
+    as_token: "{{ matrix_mautrix_imessage_appservice_token }}"
+    hs_token: "{{ matrix_mautrix_imessage_homeserver_token }}"
+    bot_username: "{{ matrix_mautrix_imessage_appservice_bot_username }}"
+    namespace_prefix: "imessage"
+
+# Additional appservices (for extending with multiple bridge instances)
+# Users can add entries here to configure multiple instances of the same bridge type
+# Example:
+# matrix_mautrix_wsproxy_appservices_additional:
+#   - id: imessage_2
+#     type: imessage
+#     as_token: 'second-device-token'
+#     hs_token: 'second-device-hs-token'
+#     bot_username: 'imessage_2_bot'
+#     namespace_prefix: 'imessage_2'
+matrix_mautrix_wsproxy_appservices_additional: []
+
 # Default mautrix-wsproxy configuration template which covers the generic use case.
 # You can customize it by controlling the various variables inside it.
 #

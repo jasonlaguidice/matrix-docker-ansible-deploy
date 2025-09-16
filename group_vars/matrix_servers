@@ -144,9 +144,7 @@ matrix_homeserver_container_extra_arguments_auto: |
     +
     (['--mount type=bind,src=' + matrix_mautrix_whatsapp_config_path + '/registration.yaml,dst=/matrix-mautrix-whatsapp-registration.yaml,ro'] if matrix_mautrix_whatsapp_enabled else [])
     +
-    (['--mount type=bind,src=' + matrix_mautrix_wsproxy_config_path + '/androidsms-registration.yaml,dst=/matrix-mautrix-androidsms-registration.yaml,ro'] if matrix_mautrix_wsproxy_enabled else [])
-    +
-    (['--mount type=bind,src=' + matrix_mautrix_wsproxy_config_path + '/imessage-registration.yaml,dst=/matrix-mautrix-imessage-registration.yaml,ro'] if matrix_mautrix_wsproxy_enabled else [])
+    (['--mount type=bind,src=' + matrix_mautrix_wsproxy_config_path + '/' + item.id + '-registration.yaml,dst=/matrix-mautrix-' + item.id + '-registration.yaml,ro' for item in matrix_mautrix_wsproxy_appservices] if matrix_mautrix_wsproxy_enabled else [])
     +
     (['--mount type=bind,src=' + matrix_mx_puppet_discord_config_path + '/registration.yaml,dst=/matrix-mx-puppet-discord-registration.yaml,ro'] if matrix_mx_puppet_discord_enabled else [])
     +
@@ -219,9 +217,7 @@ matrix_homeserver_app_service_config_files_auto: |
     +
     (['/matrix-mautrix-whatsapp-registration.yaml'] if matrix_mautrix_whatsapp_enabled else [])
     +
-    (['/matrix-mautrix-androidsms-registration.yaml'] if matrix_mautrix_wsproxy_enabled else [])
-    +
-    (['/matrix-mautrix-imessage-registration.yaml'] if matrix_mautrix_wsproxy_enabled else [])
+    (['/matrix-mautrix-' + item.id + '-registration.yaml' for item in matrix_mautrix_wsproxy_appservices] if matrix_mautrix_wsproxy_enabled else [])
     +
     (['/matrix-mx-puppet-discord-registration.yaml'] if matrix_mx_puppet_discord_enabled else [])
     +

@@ -82,21 +82,26 @@
     owner: "{{ matrix_user_name }}"
     group: "{{ matrix_group_name }}"
 
-- name: Ensure mautrix-androidsms registration.yaml installed
+- name: Ensure mautrix-wsproxy appservice registration files installed
   ansible.builtin.copy:
-    content: "{{ matrix_mautrix_androidsms_registration | to_nice_yaml }}"
-    dest: "{{ matrix_mautrix_wsproxy_config_path }}/androidsms-registration.yaml"
+    content: |
+      id: {{ item.id }}
+      url: {{ matrix_mautrix_wsproxy_appservice_address }}
+      as_token: "{{ item.as_token }}"
+      hs_token: "{{ item.hs_token }}"
+      sender_localpart: _bot_{{ item.bot_username }}
+      rate_limited: false
+      namespaces:
+          users:
+          - regex: '@{{ item.namespace_prefix }}_.+:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
+            exclusive: true
+          - exclusive: true
+            regex: '^@{{ item.bot_username | regex_escape }}:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
+    dest: "{{ matrix_mautrix_wsproxy_config_path }}/{{ item.id }}-registration.yaml"
     mode: 0644
     owner: "{{ matrix_user_name }}"
     group: "{{ matrix_group_name }}"
-
-- name: Ensure mautrix-imessage registration.yaml installed
-  ansible.builtin.copy:
-    content: "{{ matrix_mautrix_imessage_registration | to_nice_yaml }}"
-    dest: "{{ matrix_mautrix_wsproxy_config_path }}/imessage-registration.yaml"
-    mode: 0644
-    owner: "{{ matrix_user_name }}"
-    group: "{{ matrix_group_name }}"
+  loop: "{{ matrix_mautrix_wsproxy_appservices }}"
 
 - name: Ensure mautrix-wsproxy container network is created
   community.general.docker_network:

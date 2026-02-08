@@ -51,11 +51,15 @@ This section details what you can expect when switching to the Matrix Authentica
 
 - ❌ **Synapse password providers will need to be disabled**. You can no longer use [shared-secret-auth](./configuring-playbook-shared-secret-auth.md), [rest-auth](./configuring-playbook-rest-auth.md), [LDAP auth](./configuring-playbook-ldap-auth.md), etc. When the authentication flow is handled by MAS (not by Synapse anymore), it doesn't make sense to extend the Synapse authentication flow with additional modules. Many bridges used to rely on shared-secret-auth for doing double-puppeting (impersonating other users), but most (at least the mautrix bridges) nowadays use [Appservice Double Puppet](./configuring-playbook-appservice-double-puppet.md) as a better alternative. Older/maintained bridges may still rely on shared-secret-auth, as do other services like [matrix-corporal](./configuring-playbook-matrix-corporal.md).
 
-- ❌ Certain **tools like [synapse-admin](./configuring-playbook-synapse-admin.md) do not have full compatibility with MAS yet**. synapse-admin already supports [login with access token](https://github.com/etkecc/synapse-admin/pull/58), browsing users (which Synapse will internally fetch from MAS) and updating user avatars. However, editing users (passwords, etc.) now needs to happen directly against MAS using the [MAS Admin API](https://element-hq.github.io/matrix-authentication-service/api/index.html), which synapse-admin cannot interact with yet.
+- ❌ Certain **tools like [Synapse Admin](./configuring-playbook-synapse-admin.md) do not have full compatibility with MAS yet**. Synapse Admin already supports OIDC auth, browsing users (which Synapse will internally fetch from MAS) and updating user avatars. However, editing users (passwords, etc.) now needs to happen directly against MAS using the [MAS Admin API](https://element-hq.github.io/matrix-authentication-service/api/index.html), which Synapse Admin cannot interact with yet. You may be interested in using [Element Admin](./configuring-playbook-element-admin.md) for these purposes.
 
 - ❌ **Some services experience issues when authenticating via MAS**:
 
   - [Reminder bot](configuring-playbook-bot-matrix-reminder-bot.md) seems to be losing some of its state on each restart and may reschedule old reminders once again
+
+  - [Postmoogle](./configuring-playbook-bridge-postmoogle.md) works the first time around, but it consistently fails after restarting:
+
+    > cannot initialize matrix bot error="olm account is marked as shared, keys seem to have disappeared from the server"
 
 - ❌ **Encrypted appservices** do not work yet (related to [MSC4190](https://github.com/matrix-org/matrix-spec-proposals/pull/4190) and [PR 17705 for Synapse](https://github.com/element-hq/synapse/pull/17705)), so all bridges/bots that rely on encryption will fail to start (see [this issue](https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/3658) for Hookshot). You can use these bridges/bots only if you **keep end-to-bridge encryption disabled** (which is the default setting).
 

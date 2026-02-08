@@ -53,7 +53,6 @@ Services that run on the server to make the various parts of your installation w
 | [Traefik](configuring-playbook-traefik.md) | [Traefik](https://hub.docker.com/_/traefik/) | ✅ | Web server, listening on ports 80, 443 and 8448 — standing in front of all the other services. [Using your own webserver](configuring-playbook-own-webserver.md) is also possible. |
 | [Let's Encrypt](configuring-playbook-ssl-certificates.md) | [certbot/certbot](https://hub.docker.com/r/certbot/certbot/) | ✅ | [Certbot](https://certbot.eff.org/) tool for obtaining SSL certificates from [Let's Encrypt](https://letsencrypt.org/) |
 | [Exim](configuring-playbook-email.md) | [devture/exim-relay](https://hub.docker.com/r/devture/exim-relay/) | ✅ | Mail server, through which all Matrix services send outgoing email (can be configured to relay through another SMTP server) |
-| [ma1sd](configuring-playbook-ma1sd.md) | [ma1uta/ma1sd](https://hub.docker.com/r/ma1uta/ma1sd/) | ❌ | Matrix Identity Server |
 | [ddclient](configuring-playbook-dynamic-dns.md) | [linuxserver/ddclient](https://hub.docker.com/r/linuxserver/ddclient) | ❌ | Update dynamic DNS entries for accounts on Dynamic DNS Network Service Provider |
 | [LiveKit Server](configuring-playbook-livekit-server.md) | [livekit/livekit-server](https://hub.docker.com/r/livekit/livekit-server/) | ❌ | WebRTC server for audio/video calls |
 | [Livekit JWT Service](configuring-playbook-livekit-jwt-service.md) | [element-hq/lk-jwt-service](https://ghcr.io/element-hq/lk-jwt-service) | ❌ | JWT service for integrating [Element Call](./configuring-playbook-element-call.md) with [LiveKit Server](./configuring-playbook-livekit-server.md) |
@@ -108,11 +107,6 @@ Bridges can be used to connect your Matrix installation with third-party communi
 | [matrix-sms-bridge](configuring-playbook-bridge-matrix-bridge-sms.md) | [folivonet/matrix-sms-bridge](https://hub.docker.com/repository/docker/folivonet/matrix-sms-bridge) | ❌ | Bridge to SMS |
 | [matrix-wechat](configuring-playbook-bridge-wechat.md) | [lxduo/matrix-wechat](https://hub.docker.com/r/lxduo/matrix-wechat) | ❌ | Bridge to [WeChat](https://www.wechat.com/) |
 | [Heisenbridge](configuring-playbook-bridge-heisenbridge.md) | [hif1/heisenbridge](https://hub.docker.com/r/hif1/heisenbridge) | ❌ | Bouncer-style bridge to [IRC](https://wikipedia.org/wiki/Internet_Relay_Chat) |
-| [go-skype-bridge](configuring-playbook-bridge-go-skype-bridge.md) | [nodefyme/go-skype-bridge](https://hub.docker.com/r/nodefyme/go-skype-bridge) | ❌ | Bridge to [Skype](https://www.skype.com) |
-| [mx-puppet-slack](configuring-playbook-bridge-mx-puppet-slack.md) | [mx-puppet/slack/mx-puppet-slack](https://gitlab.com/mx-puppet/slack/mx-puppet-slack/container_registry) | ❌ | Bridge to [Slack](https://slack.com) |
-| [mx-puppet-instagram](configuring-playbook-bridge-mx-puppet-instagram.md) | [sorunome/mx-puppet-instagram](https://hub.docker.com/r/sorunome/mx-puppet-instagram) | ❌ | Bridge for Instagram-DMs ([Instagram](https://www.instagram.com/)) |
-| [mx-puppet-twitter](configuring-playbook-bridge-mx-puppet-twitter.md) | [sorunome/mx-puppet-twitter](https://hub.docker.com/r/sorunome/mx-puppet-twitter) | ❌ | Bridge for Twitter-DMs ([Twitter](https://twitter.com/)) |
-| [mx-puppet-discord](configuring-playbook-bridge-mx-puppet-discord.md) | [mx-puppet/discord/mx-puppet-discord](https://gitlab.com/mx-puppet/discord/mx-puppet-discord/container_registry) | ❌ | Bridge to [Discord](https://discordapp.com/) |
 | [mx-puppet-groupme](configuring-playbook-bridge-mx-puppet-groupme.md) | [xangelix/mx-puppet-groupme](https://hub.docker.com/r/xangelix/mx-puppet-groupme) | ❌ | Bridge to [GroupMe](https://groupme.com/) |
 | [matrix-steam-bridge](configuring-playbook-bridge-steam.md) | [jasonlaguidice/matrix-steam-bridge](https://github.com/jasonlaguidice/matrix-steam-bridge/pkgs/container/matrix-steam-bridge) | ❌ | Bridge to [Steam](https://steampowered.com/) |
 | [mx-puppet-steam](configuring-playbook-bridge-mx-puppet-steam.md) | [icewind1991/mx-puppet-steam](https://hub.docker.com/r/icewind1991/mx-puppet-steam) | ❌ | Bridge to [Steam](https://steamapp.com/) |
@@ -157,7 +151,6 @@ Various services that don't fit any other categories.
 
 | Service | Container image | Default? | Description |
 | ------- | --------------- | -------- | ----------- |
-| [sliding-sync](configuring-playbook-sliding-sync-proxy.md) | [matrix-org/sliding-sync](https://ghcr.io/matrix-org/sliding-sync) | ❌ | Sliding Sync support for clients which require it (like old Element X versions, before it got switched to Simplified Sliding Sync) |
 | [synapse_auto_accept_invite](configuring-playbook-synapse-auto-accept-invite.md) | (N/A) | ❌ | Synapse module to automatically accept invites |
 | [synapse_auto_compressor](configuring-playbook-synapse-auto-compressor.md) | [mb-saces/rust-synapse-tools](https://gitlab.com/mb-saces/rust-synapse-tools/container_registry) | ❌ | Cli tool that automatically compresses Synapse's `state_groups` database table in background |
 | [Matrix Corporal](configuring-playbook-matrix-corporal.md) (advanced) | [devture/matrix-corporal](https://hub.docker.com/r/devture/matrix-corporal/) | ❌ | Reconciliator and gateway for a managed Matrix server |
@@ -179,10 +172,16 @@ The list of the deprecated or unmaintained services is available [here](configur
 
 | Service | Container image | Default? | Description |
 | ------- | --------------- | -------- | ----------- |
-| [matrix-appservice-webhooks](configuring-playbook-bridge-appservice-webhooks.md) | [turt2live/matrix-appservice-webhooks](https://hub.docker.com/r/turt2live/matrix-appservice-webhooks) | ❌ | Bridge for slack compatible webhooks ([ConcourseCI](https://concourse-ci.org/), [Slack](https://slack.com/) etc. pp.) |
 | [Dimension](configuring-playbook-dimension.md) | [turt2live/matrix-dimension](https://hub.docker.com/r/turt2live/matrix-dimension) | ❌ | Open source integration manager for Matrix clients |
 | [Email2Matrix](configuring-playbook-email2matrix.md) | [devture/email2matrix](https://hub.docker.com/r/devture/email2matrix/) | ❌ | Bridge for relaying emails to Matrix rooms |
 | [Go-NEB](configuring-playbook-bot-go-neb.md) | [matrixdotorg/go-neb](https://hub.docker.com/r/matrixdotorg/go-neb) | ❌ | Multi functional bot written in Go |
+| [ma1sd](configuring-playbook-ma1sd.md) | [ma1uta/ma1sd](https://hub.docker.com/r/ma1uta/ma1sd/) | ❌ | Matrix Identity Server |
+| [matrix-appservice-webhooks](configuring-playbook-bridge-appservice-webhooks.md) | [turt2live/matrix-appservice-webhooks](https://hub.docker.com/r/turt2live/matrix-appservice-webhooks) | ❌ | Bridge for slack compatible webhooks ([ConcourseCI](https://concourse-ci.org/), [Slack](https://slack.com/) etc. pp.) |
 | [matrix-chatgpt-bot](configuring-playbook-bot-chatgpt.md) | [matrixgpt/matrix-chatgpt-bot](https://ghcr.io/matrixgpt/matrix-chatgpt-bot) | ❌ | Accessing ChatGPT via your favourite Matrix client |
 | [mautrix-facebook](configuring-playbook-bridge-mautrix-facebook.md) | [mautrix/facebook](https://mau.dev/mautrix/facebook/container_registry) | ❌ | Bridge to [Facebook](https://facebook.com/) |
 | [mautrix-instagram](configuring-playbook-bridge-mautrix-instagram.md) | [mautrix/instagram](https://mau.dev/mautrix/instagram/container_registry) | ❌ | Bridge to [Instagram](https://instagram.com/) |
+| [mx-puppet-discord](configuring-playbook-bridge-mx-puppet-discord.md) | [mx-puppet/discord/mx-puppet-discord](https://gitlab.com/mx-puppet/discord/mx-puppet-discord/container_registry) | ❌ | Bridge to [Discord](https://discordapp.com/) |
+| [mx-puppet-instagram](configuring-playbook-bridge-mx-puppet-instagram.md) | [sorunome/mx-puppet-instagram](https://hub.docker.com/r/sorunome/mx-puppet-instagram) | ❌ | Bridge for Instagram-DMs ([Instagram](https://www.instagram.com/)) |
+| [mx-puppet-slack](configuring-playbook-bridge-mx-puppet-slack.md) | [mx-puppet/slack/mx-puppet-slack](https://gitlab.com/mx-puppet/slack/mx-puppet-slack/container_registry) | ❌ | Bridge to [Slack](https://slack.com) |
+| [mx-puppet-twitter](configuring-playbook-bridge-mx-puppet-twitter.md) | [sorunome/mx-puppet-twitter](https://hub.docker.com/r/sorunome/mx-puppet-twitter) | ❌ | Bridge for Twitter-DMs ([Twitter](https://twitter.com/)) |
+| [sliding-sync](configuring-playbook-sliding-sync-proxy.md) | [matrix-org/sliding-sync](https://ghcr.io/matrix-org/sliding-sync) | ❌ | Sliding Sync support for clients which require it (like old Element X versions, before it got switched to Simplified Sliding Sync) |

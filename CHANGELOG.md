@@ -1,3 +1,190 @@
+# 2026-02-08
+
+## Zulip bridge has been removed from the playbook
+
+Zulip bridge has been removed from the playbook, as it doesn't work, and the maintainer seems to have abandoned it. See [this issue](https://github.com/GearKite/MatrixZulipBridge/issues/23) for more context.
+
+## Switched to faster secret derivation for service passwords
+
+We've switched the method used for deriving service passwords (database passwords, appservice tokens, etc.) from the `matrix_homeserver_generic_secret_key` variable.
+
+The old method used `password_hash('sha512', rounds=655555)` (655,555 rounds of SHA-512 hashing), which was designed for protecting low-entropy human passwords against brute-force attacks. For deriving secrets from an already high-entropy secret key, this many rounds provide no additional security - the secret key's entropy is what protects the derived passwords, not the computational cost of hashing.
+
+The new method uses a single-round `hash('sha512')` with a unique salt per service. This is equally secure for this use case (SHA-512 remains preimage-resistant; brute-forcing a high-entropy key is infeasible regardless of rounds), while being dramatically faster.
+
+On a fast mini PC, evaluating `postgres_managed_databases` (which references multiple database passwords) dropped from **~10.7 seconds to ~0.6 seconds**. The Postgres role evaluates this variable multiple times during a run, so the cumulative savings are significant. All other roles that reference derived passwords also benefit.
+
+**What this means for users**: all derived service passwords (database passwords, appservice tokens, etc.) will change on the next playbook run. The main/superuser database password (`postgres_connection_password`) is not affected, as it is hardcoded in inventory variables rather than derived via hashing. All services will receive their new passwords as part of the same run, so this should be a seamless, non-user-impacting change.
+
+## (BC Break) Dynamic DNS role has been relocated and variable names need adjustments
+
+The role for Dynamic DNS has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_dynamic_dns_` prefix on its variable names has been renamed to `ddclient_`, so you need to adjust your `vars.yml` configuration.
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## ma1sd has been removed from the playbook
+
+[ma1sd](./docs/configuring-playbook-ma1sd.md) has been removed from the playbook, as it has been unmaintained for a long time.
+
+The playbook will let you know if you're using any `matrix_ma1sd_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-ma1sd.md#uninstalling-the-component-manually).
+
+Please note that some of the functions can be achieved with other components. For example, if you wish to implement LDAP integration, you might as well check out [the LDAP provider module for Synapse](./docs/configuring-playbook-ldap-auth.md) instead.
+
+# 2026-02-07
+
+## (BC Break) Cinny role has been relocated and variable names need adjustments
+
+The role for Cinny has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_client_cinny_` prefix was dropped from its variable names, so you need to adjust your `vars.yml` configuration.
+
+You need to do the following replacement:
+
+- `matrix_client_cinny_` -> `cinny_`
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## The Sliding Sync proxy has been removed from the playbook
+
+The [Sliding Sync proxy](./docs/configuring-playbook-sliding-sync-proxy.md) has been removed from the playbook, as it's been replaced with a different method (called Simplified Sliding Sync) integrated to newer homeservers by default (**Conduit** homeserver from version `0.6.0` or **Synapse** from version `1.114`).
+
+The playbook will let you know if you're using any `matrix_sliding_sync_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the proxy manually](./docs/configuring-playbook-sliding-sync-proxy.md#uninstalling-the-proxy-manually).
+
+# 2026-02-04
+
+## baibot now supports OpenAI's built-in tools (Web Search and Code Interpreter)
+
+**TLDR**: if you're using the [OpenAI provider](https://github.com/etkecc/baibot/blob/main/docs/providers.md#openai) with [baibot](docs/configuring-playbook-bot-baibot.md), you can now enable [built-in tools](https://github.com/etkecc/baibot/blob/61d18b2/docs/features.md#%EF%B8%8F-built-in-tools-openai-only) (`web_search` and `code_interpreter`) to extend the model's capabilities.
+
+These tools are **disabled by default** and can be enabled via Ansible variables for static agent configurations:
+
+```yaml
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_web_search: true
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_code_interpreter: true
+```
+
+Users who define agents dynamically at runtime will need to [update their agents](https://github.com/etkecc/baibot/blob/61d18b2/docs/agents.md#updating-agents) to enable these tools. See the [baibot v1.14.0 changelog](https://github.com/etkecc/baibot/blob/61d18b2/CHANGELOG.md) for details.
+
+## Whoami-based sync worker routing for improved sticky sessions for Synapse
+
+Deployments using [Synapse workers](./docs/configuring-playbook-synapse.md#load-balancing-with-workers) now benefit from improved sync worker routing via a new whoami-based mechanism (making use of the [whoami Matrix Client-Server API](https://spec.matrix.org/v1.17/client-server-api/#get_matrixclientv3accountwhoami)).
+
+Previously, sticky routing for sync workers relied on parsing usernames from access tokens, which only worked with native Synapse tokens (`syt_<base64 username>_...`). This approach failed for [Matrix Authentication Service](docs/configuring-playbook-matrix-authentication-service.md) (MAS) deployments, where tokens are opaque and don't contain username information. This resulted in device-level stickiness (same token → same worker) rather than user-level stickiness (same user → same worker regardless of device), leading to suboptimal cache utilization on sync workers.
+
+The new implementation calls Synapse's `/whoami` endpoint to resolve access tokens to usernames, enabling proper user-level sticky routing regardless of the authentication system in use (native Synapse auth, MAS, etc.). Results are cached to minimize overhead.
+
+This change:
+- **Automatically enables** when sync workers are configured (no action required)
+- **Works universally** with any authentication system
+- **Replaces the old implementation** entirely to keep the codebase simple
+- **Adds minimal overhead** (one cached internal subrequest per sync request) for non-MAS deployments
+
+For debugging, you can enable verbose logging and/or response headers showing routing decisions:
+
+```yaml
+# Logs cache hits/misses and routing decisions to the container's stderr
+matrix_synapse_reverse_proxy_companion_whoami_sync_worker_router_logging_enabled: true
+
+# Adds X-Sync-Worker-Router-User-Identifier and X-Sync-Worker-Router-Upstream headers to sync responses
+matrix_synapse_reverse_proxy_companion_whoami_sync_worker_router_debug_headers_enabled: true
+```
+
+
+# 2025-12-09
+
+## Traefik Cert Dumper upgrade
+
+The variable `traefik_certs_dumper_ssl_dir_path` was renamed to `traefik_certs_dumper_ssl_path`. Users who use [their own webserver with Traefik](docs/configuring-playbook-own-webserver.md) may need to adjust their configuration.
+
+The variable `traefik_certs_dumper_dumped_certificates_dir_path` was renamed to `traefik_certs_dumper_dumped_certificates_path`. Users who use [SRV Server Delegation](docs/howto-srv-server-delegation.md) may need to adjust their configuration.
+
+# 2025-11-23
+
+## Matrix.to support
+
+The playbook now supports [Matrix.to](https://github.com/matrix-org/matrix.to) — a simple URL redirection service which powers [matrix.to](https://matrix.to).
+
+To learn more, see our [Setting up Matrix.to](docs/configuring-playbook-matrixto.md) documentation page.
+
+# 2025-11-09
+
+## matrix-appservice-webhooks has been removed from the playbook
+
+[matrix-appservice-webhooks](./docs/configuring-playbook-bridge-appservice-webhooks.md) has been removed from the playbook, as it has been deprecated since more than several years.
+
+The playbook will let you know if you're using any `matrix_appservice_webhooks_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the bridge manually](./docs/configuring-playbook-bridge-appservice-webhooks.md#uninstalling-the-bridge-manually).
+
+## mautrix-facebook and mautrix-instagram have been removed from the playbook
+
+[mautrix-facebook](./docs/configuring-playbook-bridge-mautrix-facebook.md) and [mautrix-instagram](./docs/configuring-playbook-bridge-mautrix-instagram.md) have been removed from the playbook, as they have been deprecated in favor of the [mautrix-meta](https://github.com/mautrix/meta) Messenger/Instagram bridge, integrated to the playbook at [2024-02-19](#2024-02-19).
+
+The playbook will let you know if you're using any variables for those bridges:
+
+- `matrix_mautrix_facebook_*`
+- `matrix_mautrix_instagram_*`
+
+You'll need to remove them from `vars.yml` and potentially uninstall them manually. Consult pages below for details:
+
+- [Instruction for mautrix-facebook](./docs/configuring-playbook-bridge-mautrix-facebook.md#uninstalling-the-bridge-manually)
+- [Instruction for mautrix-instagram](./docs/configuring-playbook-bridge-mautrix-instagram.md#uninstalling-the-bridge-manually)
+
+# 2025-11-08
+
+## MatrixZulipBridge support
+
+Thanks to [Suguru Hirahara](https://github.com/luixxiul), the playbook now supports the [GearKite/MatrixZulipBridge](https://github.com/GearKite/MatrixZulipBridg) bridge for bridging Matrix to [Zulip](https://zulip.com/).
+
+To learn more, see our [Setting up Zulip bridging](docs/configuring-playbook-bridge-zulip.md) documentation page.
+
+# 2025-11-07
+
+## The matrix-chatgpt-bot has been removed from the playbook
+
+The [matrix-bot-chatgpt](./docs/configuring-playbook-bot-chatgpt.md) has been removed from the playbook, as it has been deprecated since September 2024.
+
+The playbook will let you know if you're using any `matrix_bot_chatgpt_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the bot manually](./docs/configuring-playbook-bot-chatgpt.md#uninstalling-matrix-chatgpt-bot-manually).
+
+# 2025-11-05
+
+## The MX Puppet bridges for Discord, Instagram, Slack, and Twitter have been removed from the playbook
+
+The MX Puppet bridges for Discord, Instagram, Slack, and Twitter have been removed from the playbook, as they have been unmaintained for more than several years and do not support important features like authenticated media. See [this issue](https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/3867) for the context.
+
+The playbook will let you know if you're using any variables for those bridges:
+
+- `matrix_mx_puppet_discord_*`
+- `matrix_mx_puppet_instagram_*`
+- `matrix_mx_puppet_slack_*`
+- `matrix_mx_puppet_twitter_*`
+
+You'll need to remove them from `vars.yml` and potentially uninstall them manually. Consult pages below for details:
+
+- [Instruction for MX Puppet Discord bridge](./docs/configuring-playbook-bridge-mx-puppet-discord.md#uninstalling-the-bridge-manually)
+- [Instruction for MX Puppet Instagram bridge](./docs/configuring-playbook-bridge-mx-puppet-instagram.md#uninstalling-the-bridge-manually)
+- [Instruction for MX Puppet Slack bridge](./docs/configuring-playbook-bridge-mx-puppet-slack.md#uninstalling-the-bridge-manually)
+- [Instruction for MX Puppet Twitter bridge](./docs/configuring-playbook-bridge-mx-puppet-twitter.md#uninstalling-the-bridge-manually)
+
+# 2025-11-04
+
+## The Go Skype bridge has been removed from the playbook
+
+The [go-skype-bridge](./docs/configuring-playbook-bridge-go-skype-bridge.md) has been removed from the playbook, as Skype has been discontinued since the May 2025.
+
+The playbook will let you know if you're using any `matrix_go_skype_bridge_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the bridge manually](./docs/configuring-playbook-bridge-go-skype-bridge.md#uninstalling-the-bridge-manually).
+
+# 2025-10-02
+
+## Element Admin support
+
+The playbook now supports [Element Admin](./docs/configuring-playbook-element-admin.md) - a new web-based administration panel for Synapse and [Matrix Authentication Service](./docs/configuring-playbook-matrix-authentication-service.md).
+
+Deployments based on Matrix Authentication Service may find it useful to run both Synapse Admin and Element Admin at the same time.
+
+Deployments that don't rely on Matrix Authentication Service are unlikely to find anything useful in Element Admin right now (it's too basic in its current form).
+
+
 # 2025-04-26
 
 ## Continuwuity support
@@ -2814,7 +3001,7 @@ See our [Migrating to Element Web](docs/configuring-playbook-riot-web.md#migrati
 
 ## Steam bridging support via mx-puppet-steam
 
-Thanks to [Hugues Morisset](https://github.com/izissise)'s efforts, the playbook now supports bridging to [Steam](https://steamapp.com/) via the [mx-puppet-steam](https://github.com/icewind1991/mx-puppet-steam) bridge. See our [Setting up MX Puppet Steam bridging](docs/configuring-playbook-bridge-mx-puppet-steam.md) documentation page for getting started.
+Thanks to [Hugues Morisset](https://github.com/izissise)'s efforts, the playbook now supports bridging to [Steam](https://steamapp.com/) via the [mx-puppet-steam](https://codeberg.org/icewind/mx-puppet-steam) bridge. See our [Setting up MX Puppet Steam bridging](docs/configuring-playbook-bridge-mx-puppet-steam.md) documentation page for getting started.
 
 
 # 2020-07-01

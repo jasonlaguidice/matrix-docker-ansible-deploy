@@ -48,8 +48,11 @@ matrix_bridges_encryption_enabled: false
 # Global var to make encryption default/optional across all bridges with encryption support
 matrix_bridges_encryption_default: "{{ matrix_bridges_encryption_enabled }}"
 
-# Global var for enabling msc4190 ( On supported bridges)
-matrix_bridges_msc4190_enabled: "{{ matrix_authentication_service_enabled and matrix_bridges_encryption_enabled and matrix_synapse_experimental_features_msc3202_device_masquerading_enabled }}"
+# Global var for enabling msc4190 (On supported bridges)
+matrix_bridges_msc4190_enabled: "{{ matrix_authentication_service_enabled and matrix_bridges_encryption_enabled }}"
+
+# Global var for enabling bridge self-signing ( On supported bridges)
+matrix_bridges_self_sign_enabled: "{{ matrix_bridges_msc4190_enabled }}"
 
 # Global var to enable/disable relay mode across all bridges with relay mode support
 matrix_bridges_relay_enabled: false
@@ -106,7 +109,7 @@ matrix_server_fqn_element: "element.{{ matrix_domain }}"
 # This is where you access the Hydrogen web client from (if enabled via matrix_client_hydrogen_enabled; disabled by default).
 matrix_server_fqn_hydrogen: "hydrogen.{{ matrix_domain }}"
 
-# This is where you access the Cinny web client from (if enabled via matrix_client_cinny_enabled; disabled by default).
+# This is where you access the Cinny web client from (if enabled via cinny_enabled; disabled by default).
 matrix_server_fqn_cinny: "cinny.{{ matrix_domain }}"
 
 # This is where you access the SchildiChat Web from (if enabled via matrix_client_schildichat_enabled; disabled by default).
@@ -144,6 +147,9 @@ matrix_server_fqn_ntfy: "ntfy.{{ matrix_domain }}"
 
 # This is where you access rageshake.
 matrix_server_fqn_rageshake: "rageshake.{{ matrix_domain }}"
+
+# This is where you access Matrix.to.
+matrix_server_fqn_matrixto: "mt.{{ matrix_domain }}"
 
 matrix_federation_public_port: 8448
 
@@ -228,12 +234,6 @@ matrix_homeserver_container_federation_url: "http://{{ matrix_homeserver_contain
 # This likely gets overridden elsewhere.
 matrix_homeserver_container_federation_api_endpoint: ""
 
-# Specifies the public url of the Sync v3 (sliding-sync) API.
-# This will be used to set the `org.matrix.msc3575.proxy` property in `/.well-known/matrix/client`.
-# Once the API is stabilized, this will no longer be required.
-# See MSC3575: https://github.com/matrix-org/matrix-spec-proposals/blob/kegan/sync-v3/proposals/3575-sync.md
-matrix_homeserver_sliding_sync_url: ""
-
 matrix_identity_server_url: ~
 
 matrix_integration_manager_rest_url: ~
@@ -267,7 +267,7 @@ matrix_metrics_exposure_http_basic_auth_users: ''
 #     - nevertheless, the playbook expects that you would install Traefik yourself via other means
 #     - you should make sure your Traefik configuration is compatible with what the playbook would have configured (web, web-secure, matrix-federation entrypoints, etc.)
 #     - you need to set `matrix_playbook_reverse_proxyable_services_additional_network` to the name of your Traefik network
-#     - Traefik certs dumper will be enabled by default (`traefik_certs_dumper_enabled`). You need to point it to your Traefik's SSL certificates (`traefik_certs_dumper_ssl_dir_path`)
+#     - Traefik certs dumper will be enabled by default (`traefik_certs_dumper_enabled`). You need to point it to your Traefik's SSL certificates (`traefik_certs_dumper_ssl_path`)
 #
 # - `none`
 #     - no reverse-proxy will be installed
@@ -368,7 +368,7 @@ matrix_playbook_public_matrix_federation_api_traefik_entrypoint_definition:
 # This entrypoint provides local addons (e.g. bridges, bots, etc.) with the ability to easily & quickly communicate with the homeserver and/or related software.
 # Such services can reach the homeserver over the public internet (e.g. https://matrix.example.com), but this is slow due to networking and SSL-termination.
 # Talking directly to the homeserver (e.g. `http://matrix-synapse:8008`) is another option, but does not allow other homeserver-related software
-# (e.g. identity servers like ma1sd, media repository servers like matrix-media-repo, firewalls like matrix-corporal)
+# (e.g. media repository servers like matrix-media-repo, firewalls like matrix-corporal)
 # to register itself for certain homeserver routes.
 #
 # For example: when matrix-media-repo is enabled, it wishes to handle `/_matrix/media` both publicly and internally.
@@ -385,7 +385,8 @@ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_enabled: "{{ matri
 matrix_playbook_internal_matrix_client_api_traefik_entrypoint_name: matrix-internal-matrix-client-api
 matrix_playbook_internal_matrix_client_api_traefik_entrypoint_port: 8008
 matrix_playbook_internal_matrix_client_api_traefik_entrypoint_host_bind_port: ''
-matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config: "{{ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_auto | combine(matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_custom, recursive=True) }}"
+matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config: "{{ (matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_default | combine(matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_auto)) | combine(matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_custom, recursive=True) }}"
+matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_default: {}
 matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_auto: {}
 matrix_playbook_internal_matrix_client_api_traefik_entrypoint_config_custom: {}
 

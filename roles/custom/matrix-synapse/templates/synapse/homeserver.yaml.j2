@@ -298,7 +298,7 @@ listeners:
     tls: true
     bind_addresses: ['::']
     type: http
-    x_forwarded: false
+    x_forwarded: {{ matrix_synapse_container_federation_api_tls_x_forwarded | to_json }}
 
     resources:
       - names: {{ matrix_synapse_federation_listener_resource_names|to_json }}
@@ -311,7 +311,7 @@ listeners:
     tls: false
     bind_addresses: ['::']
     type: http
-    x_forwarded: true
+    x_forwarded: {{ matrix_synapse_container_client_api_x_forwarded | to_json }}
 
     resources:
       - names: {{ matrix_synapse_http_listener_resource_names|to_json }}
@@ -324,7 +324,7 @@ listeners:
     tls: false
     bind_addresses: ['::']
     type: http
-    x_forwarded: true
+    x_forwarded: {{ matrix_synapse_container_federation_api_plain_x_forwarded | to_json }}
 
     resources:
       - names: {{ matrix_synapse_federation_listener_resource_names|to_json }}
@@ -1035,11 +1035,15 @@ federation_rr_transactions_per_room_per_second: {{ matrix_synapse_federation_rr_
 #enable_media_repo: false
 enable_media_repo: {{ matrix_synapse_enable_media_repo | to_json }}
 
+# Enable the local on-disk media storage provider.
+# When disabled, media is stored only in configured media_storage_providers and temporary files are used for processing (no local caching).
+# Warning: If this option is set to false and no media_storage_providers are configured, all media requests will return 404 errors as there will be no storage backend available.
+enable_local_media_storage: {{ matrix_synapse_enable_local_media_storage | to_json }}
+
 # Enable authenticated media.
 # enable_authenticated_media blocks access to new media from the legacy endpoints
 # and freezes the unauthenticated media repo by blocking all downloads that are not using
 # the new authenticated endpoints. If this option is turned off all media reverts to being considered "old"
-
 enable_authenticated_media: {{ matrix_synapse_enable_authenticated_media | to_json }}
 
 # Directory where uploaded images and attachments are stored.
@@ -1178,6 +1182,9 @@ url_preview_ip_range_whitelist: {{ matrix_synapse_url_preview_ip_range_whitelist
 #
 #  # blacklist any URL with a literal IPv4 address
 #  - netloc: '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+{% if matrix_synapse_url_preview_url_blacklist | length > 0 %}
+url_preview_url_blacklist: {{ matrix_synapse_url_preview_url_blacklist | to_json }}
+{% endif %}
 
 # The largest allowed URL preview spidering size in bytes
 #
@@ -2393,13 +2400,13 @@ email:
   # has missed. Disabled by default.
   #
   #enable_notifs: false
-  enable_notifs: true
+  enable_notifs: {{ matrix_synapse_email_enable_notifs|to_json }}
 
   # Uncomment the following to disable automatic subscription to email
   # notifications for new users. Enabled by default.
   #
   #notif_for_new_users: false
-  notif_for_new_users: True
+  notif_for_new_users: {{ matrix_synapse_email_notif_for_new_users|to_json }}
 
   # Custom URL for client links within the email notifications. By default
   # links will be based on "https://matrix.to".
@@ -2731,6 +2738,15 @@ stats:
 #  system_mxid_display_name: "Server Notices"
 #  system_mxid_avatar_url: "mxc://example.com/oumMVlgDnLYFaPVkExemNVVZ"
 #  room_name: "Server Notices"
+{% if matrix_synapse_server_notices_enabled %}
+server_notices:
+  system_mxid_localpart: {{ matrix_synapse_server_notices_system_mxid_localpart | string | to_json }}
+  system_mxid_display_name: {{ matrix_synapse_server_notices_system_mxid_display_name | string | to_json }}
+{% if matrix_synapse_server_notices_system_mxid_avatar_url %}
+  system_mxid_avatar_url: {{ matrix_synapse_server_notices_system_mxid_avatar_url | string | to_json }}
+{% endif %}
+  room_name: {{ matrix_synapse_server_notices_room_name | string | to_json }}
+{% endif %}
 
 
 
@@ -2986,9 +3002,6 @@ experimental_features:
   {% if matrix_synapse_experimental_features_msc2409_to_device_messages_enabled %}
   msc2409_to_device_messages_enabled: true
   {% endif %}
-  {% if matrix_synapse_experimental_features_msc3202_device_masquerading_enabled %}
-  msc3202_device_masquerading: true
-  {% endif %}
   {% if matrix_synapse_experimental_features_msc3202_transaction_extensions_enabled %}
   msc3202_transaction_extensions: true
   {% endif %}
@@ -2997,9 +3010,6 @@ experimental_features:
   {% endif %}
   {% if matrix_synapse_experimental_features_msc4108_enabled %}
   msc4108_enabled: true
-  {% endif %}
-  {% if matrix_synapse_experimental_features_msc4133_enabled %}
-  msc4133_enabled: true
   {% endif %}
   {% if matrix_synapse_experimental_features_msc4140_enabled %}
   msc4140_enabled: true

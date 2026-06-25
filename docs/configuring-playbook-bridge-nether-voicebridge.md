@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Jason LaGuidice
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Setting up Nether Voice Bridge (optional)
 
 The playbook can install and configure [nether-voicebridge](https://nether.codes/dark/nether-voicebridge), a bridge that connects Discord voice channels to Matrix [Element Call](https://element.io/element-call) rooms.

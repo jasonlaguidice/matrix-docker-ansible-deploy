@@ -60,7 +60,7 @@ matrix_nether_voicebridge_puppet_nickname_prefix: "[Matrix] "
 
 ## Multiple guilds and channels
 
-Add more entries to `matrix_nether_voicebridge_bridges` to bridge additional channel pairs from the same process. All bridges share the puppet token pool — invite all bots to all guilds you plan to bridge. If bridging multiple channels within the same guild, repeat the full pattern (including re-using the guild ID) for each channel to be bridged.
+Add more entries to `matrix_nether_voicebridge_bridges` to bridge additional channel pairs from the same process. All bridges share the puppet token pool — invite all bots to all guilds you plan to bridge. If bridging multiple channels within the same guild, repeat the full pattern (including reusing the guild ID) for each channel to be bridged.
 
 ```yaml
 matrix_nether_voicebridge_bridges:

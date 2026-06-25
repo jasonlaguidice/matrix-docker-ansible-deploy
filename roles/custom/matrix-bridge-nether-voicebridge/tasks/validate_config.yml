@@ -44,12 +44,14 @@
 - name: Fail if any bridge is missing required fields
   ansible.builtin.fail:
     msg: >-
-      Bridge #{{ item.0 + 1 }} ('{{ item.1.name | default("unnamed") }}') is missing one or more
+      Bridge #{{ bridge_idx + 1 }} ('{{ item.name | default("unnamed") }}') is missing one or more
       required fields. Each bridge must define: name, discord_guild_id, discord_channel_id,
       matrix_room_id.
   when: >-
-    (item.1.name | default('') | length == 0)
-    or (item.1.discord_guild_id | default('') | length == 0)
-    or (item.1.discord_channel_id | default('') | length == 0)
-    or (item.1.matrix_room_id | default('') | length == 0)
-  with_indexed_items: "{{ matrix_nether_voicebridge_bridges }}"
+    (item.name | default('') | length == 0)
+    or (item.discord_guild_id | default('') | length == 0)
+    or (item.discord_channel_id | default('') | length == 0)
+    or (item.matrix_room_id | default('') | length == 0)
+  loop: "{{ matrix_nether_voicebridge_bridges }}"
+  loop_control:
+    index_var: bridge_idx

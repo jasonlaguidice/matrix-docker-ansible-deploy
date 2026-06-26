@@ -10,7 +10,7 @@ matrix_nether_voicebridge_enabled: false
 
 matrix_nether_voicebridge_container_image_self_build: false
 matrix_nether_voicebridge_container_image_self_build_repo: "https://nether.codes/dark/nether-voicebridge.git"
-matrix_nether_voicebridge_container_image_self_build_repo_version: "{{ 'main' if matrix_nether_voicebridge_version == 'latest' else matrix_nether_voicebridge_version }}"
+matrix_nether_voicebridge_container_image_self_build_repo_version: "{{ 'master' if matrix_nether_voicebridge_version == 'latest' else matrix_nether_voicebridge_version }}"
 
 # renovate: datasource=docker depName=nether.codes/dark/nether-voicebridge
 matrix_nether_voicebridge_version: 0.2.3

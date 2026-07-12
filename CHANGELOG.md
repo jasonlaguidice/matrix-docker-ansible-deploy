@@ -1,3 +1,39 @@
+# 2026-06-29
+
+## Support for running on Synology DSM
+
+Thanks to [cksit](https://github.com/cksit), the playbook can now run on [Synology DSM](https://www.synology.com/dsm) 7 and later.
+
+Synology hosts are detected automatically (via `/etc/synoinfo.conf`), so other systems are unaffected. On DSM, the playbook uses the platform's native user management (`synouser`/`synogroup`), works around a Docker SDK incompatibility, and installs a small boot-fix service that handles a few DSM-specific boot quirks.
+
+To get started, see the new [Configuring Synology DSM](./docs/configuring-playbook-synology.md) documentation page.
+
+## Mautrix bridges now expose their API (for Mautrix Manager and similar tools)
+
+The playbook now exposes the HTTP API of each [mautrix](https://github.com/mautrix) bridge, so tools like [Mautrix Manager](https://github.com/mautrix/manager) can help you log into them. This is especially useful for [mautrix-gmessages](./docs/configuring-playbook-bridge-mautrix-gmessages.md): Google has removed its QR-code login, leaving a [manual cookie-extraction flow](https://docs.mau.fi/bridges/go/gmessages/authentication.html) that tools like Mautrix Manager can streamline.
+
+The API is exposed at `https://matrix.example.com/bridges/SERVICENAME` (for example, `https://matrix.example.com/bridges/gmessages`) and is advertised via a new `/.well-known/matrix/mautrix` file, so compatible tools can discover your bridges automatically. Such tools authenticate with your own Matrix access token, so no bridge secret needs to be shared with them.
+
+This affects all mautrix bridges based on the new bridge framework (bluesky, gmessages, meta-instagram, meta-messenger, signal, slack, telegram, twitter and whatsapp) and is enabled by default.
+
+To learn more (including how to turn it off), see the [Expose the bridge's API](./docs/configuring-playbook-bridge-mautrix-bridges.md#expose-the-bridges-api-for-mautrix-manager-and-similar-tools) section on our common mautrix bridges documentation page.
+
+# 2026-06-28
+
+## baibot now supports Venice, our recommended provider
+
+[baibot](./docs/configuring-playbook-bot-baibot.md) now ships a preset for the [Venice](./docs/configuring-playbook-bot-baibot.md#venice) provider, and it's the one we recommend. It's the most capable provider baibot supports (text generation with vision, file inputs and web search, speech-to-text, text-to-speech, and image generation and editing), and the only one that runs inference with no logging and no training on your data.
+
+Enabling it takes a preset toggle and an API key:
+
+```yaml
+matrix_bot_baibot_config_agents_static_definitions_venice_enabled: true
+
+matrix_bot_baibot_config_agents_static_definitions_venice_config_api_key: "YOUR_API_KEY_HERE"
+```
+
+[OpenAI](https://openai.com/) and baibot's other providers remain fully supported. To get started, see the [Setting up baibot](./docs/configuring-playbook-bot-baibot.md#venice) documentation page.
+
 # 2026-06-24
 
 ## Support for bridging to iMessage via RustPush

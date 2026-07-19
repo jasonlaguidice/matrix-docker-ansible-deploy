@@ -50,6 +50,8 @@ This ensures that:
 
 You can either [run Ansible in a container on the Matrix server itself](#running-ansible-in-a-container-on-the-matrix-server-itself) or [run Ansible in a container on another computer (not the Matrix server)](#running-ansible-in-a-container-on-another-computer-not-the-matrix-server).
 
+💡 If you use [Visual Studio Code](https://code.visualstudio.com/) or [GitHub Codespaces](https://github.com/features/codespaces), the playbook also ships a [dev container](https://containers.dev/) configuration (see the `.devcontainer/` directory) based on this same Ansible Docker image, which can prepare such a containerized Ansible environment for you automatically.
+
 ### Running Ansible in a container on the Matrix server itself
 
 To run Ansible in a (Docker) container on the Matrix server itself, you need to have a working Docker installation. Docker is normally installed by the playbook, so this may be a bit of a chicken and egg problem. To solve it:
@@ -74,7 +76,7 @@ docker run \
 -w /work \
 --mount type=bind,src=`pwd`,dst=/work \
 --entrypoint=/bin/sh \
-ghcr.io/devture/ansible:11.6.0-r0-0
+ghcr.io/devture/ansible:14.0.0-r0-0
 ```
 
 Once you execute the above command, you'll be dropped into a `/work` directory inside a Docker container. The `/work` directory contains the playbook's code.
@@ -95,7 +97,7 @@ docker run \
 --mount type=bind,src=`pwd`,dst=/work \
 --mount type=bind,src=$HOME/.ssh/id_ed25519,dst=/root/.ssh/id_ed25519,ro \
 --entrypoint=/bin/sh \
-ghcr.io/devture/ansible:11.6.0-r0-0
+ghcr.io/devture/ansible:14.0.0-r0-0
 ```
 
 The above command tries to mount an SSH key (`$HOME/.ssh/id_ed25519`) into the container (at `/root/.ssh/id_ed25519`). If your SSH key is at a different path (not in `$HOME/.ssh/id_ed25519`), adjust that part.

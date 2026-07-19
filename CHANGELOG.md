@@ -1,3 +1,180 @@
+# 2026-07-18
+
+## LiveKit Server port configuration must be unambiguous now
+
+This only affects you if you have configured a LiveKit Server RTC port range (`livekit_server_config_rtc_port_range_start` and `livekit_server_config_rtc_port_range_end`).
+
+LiveKit only uses one of the two port configuration mechanisms: when a port range is defined, the multiplexed UDP port (`livekit_server_config_rtc_udp_port`) is ignored entirely. Previously, the role would silently render its default UDP port (7882) into the configuration alongside your port range, misleadingly suggesting that both are in effect.
+
+The role now asks you to make the choice explicit: if you define a port range, unset the UDP port by adding `livekit_server_config_rtc_udp_port: ''` to your `vars.yml` file. A validation error will guide you, if your configuration is affected.
+
+
+# 2026-07-17
+
+## prometheus-nginxlog-exporter metric names have changed
+
+If you have enabled [metrics for nginx logs](docs/configuring-playbook-prometheus-grafana.md) (`prometheus_nginxlog_exporter_enabled: true`), note that the exporter's metric names have changed.
+
+The exporter's configuration used to ship a leftover `myprefix` placeholder as the metric name prefix, producing metrics like `myprefix_http_response_count_total`. The bundled Grafana dashboard queries unprefixed metric names (`http_response_count_total`), so it could never show any data (reported in [#3380](https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/3380)).
+
+Metric names are now unprefixed, matching the bundled dashboard, which should start working. Each metric carries a `namespace` label, whose value is now `nginx` (previously `matrix`); it is configurable via `prometheus_nginxlog_exporter_config_namespace_name`. If you have built custom dashboards or alerts on top of the old `myprefix_*` metric names, adjust them accordingly, or restore the old behavior by setting `prometheus_nginxlog_exporter_config_namespace_metrics_prefix: myprefix` in your `vars.yml` file.
+
+
+# 2026-07-16
+
+## (Backward Compatibility Break) Bridge variables have been renamed
+
+All bridge roles (`roles/custom/matrix-bridge-*`) now use a uniform variable naming scheme, where the variable prefix matches the role directory name. This adopts the naming policy proposed in [#4705](https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/4705) and requested in [#5096](https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/5096).
+
+Previously, bridge variable prefixes were all over the place (`matrix_mautrix_telegram_*`, `matrix_heisenbridge_*`, `matrix_steam_bridge_*`, etc.). Now, they all follow the same pattern that bot roles (`matrix_bot_<name>_*`) have been using for years: the `matrix-bridge-mautrix-telegram` role uses `matrix_bridge_mautrix_telegram_*` variables, the `matrix-bridge-steam` role uses `matrix_bridge_steam_*` variables, and so on.
+
+Only Ansible variables were renamed. Systemd service names, container names, `/matrix/*` directories, database names and usernames, and appservice registration contents (tokens, bot usernames) all remain the same. No data migration is necessary and bridges keep working as before, once you rename the variables in your `vars.yml` configuration file.
+
+The playbook will let you know if your configuration still uses old-style variable names.
+
+Here is the full rename map:
+
+| Old variable prefix | New variable prefix |
+|---------------------|---------------------|
+| `matrix_appservice_discord_` | `matrix_bridge_appservice_discord_` |
+| `matrix_appservice_irc_` | `matrix_bridge_appservice_irc_` |
+| `matrix_beeper_linkedin_` | `matrix_bridge_beeper_linkedin_` |
+| `matrix_heisenbridge_` | `matrix_bridge_heisenbridge_` |
+| `matrix_hookshot_` | `matrix_bridge_hookshot_` |
+| `matrix_mautrix_androidsms_` | `matrix_bridge_mautrix_wsproxy_androidsms_` |
+| `matrix_mautrix_bluesky_` | `matrix_bridge_mautrix_bluesky_` |
+| `matrix_mautrix_discord_` | `matrix_bridge_mautrix_discord_` |
+| `matrix_mautrix_gmessages_` | `matrix_bridge_mautrix_gmessages_` |
+| `matrix_mautrix_googlechat_` | `matrix_bridge_mautrix_googlechat_` |
+| `matrix_mautrix_gvoice_` | `matrix_bridge_mautrix_gvoice_` |
+| `matrix_mautrix_imessage_` | `matrix_bridge_mautrix_wsproxy_imessage_` |
+| `matrix_mautrix_meta_instagram_` | `matrix_bridge_mautrix_meta_instagram_` |
+| `matrix_mautrix_meta_messenger_` | `matrix_bridge_mautrix_meta_messenger_` |
+| `matrix_mautrix_signal_` | `matrix_bridge_mautrix_signal_` |
+| `matrix_mautrix_slack_` | `matrix_bridge_mautrix_slack_` |
+| `matrix_mautrix_telegram_` | `matrix_bridge_mautrix_telegram_` |
+| `matrix_mautrix_twitter_` | `matrix_bridge_mautrix_twitter_` |
+| `matrix_mautrix_whatsapp_` | `matrix_bridge_mautrix_whatsapp_` |
+| `matrix_mautrix_wsproxy_` | `matrix_bridge_mautrix_wsproxy_` |
+| `matrix_meshtastic_relay_` | `matrix_bridge_meshtastic_relay_` |
+| `matrix_mx_puppet_groupme_` | `matrix_bridge_mx_puppet_groupme_` |
+| `matrix_mx_puppet_steam_` | `matrix_bridge_mx_puppet_steam_` |
+| `matrix_postmoogle_` | `matrix_bridge_postmoogle_` |
+| `matrix_rustpush_bridge_` | `matrix_bridge_rustpush_` |
+| `matrix_sms_bridge_` | `matrix_bridge_sms_` |
+| `matrix_steam_bridge_` | `matrix_bridge_steam_` |
+| `matrix_wechat_` | `matrix_bridge_wechat_` |
+
+A few special cases beyond the prefix map:
+
+- `matrix_mautrix_signal_wsproxy_syncproxy_connection_string` (a variable of the mautrix-wsproxy role, despite its name) is now `matrix_bridge_mautrix_wsproxy_syncproxy_connection_string`
+- `matrix_playbook_migration_matrix_postmoogle_migration_validation_enabled` is now `matrix_playbook_migration_matrix_bridge_postmoogle_migration_validation_enabled`
+
+You can update your `vars.yml` file automatically with this `sed` command (on macOS, use `sed -i ''` instead of `sed -i`):
+
+```sh
+sed -i \
+  -e 's/matrix_appservice_discord_/matrix_bridge_appservice_discord_/g' \
+  -e 's/matrix_appservice_irc_/matrix_bridge_appservice_irc_/g' \
+  -e 's/matrix_beeper_linkedin_/matrix_bridge_beeper_linkedin_/g' \
+  -e 's/matrix_heisenbridge_/matrix_bridge_heisenbridge_/g' \
+  -e 's/matrix_hookshot_/matrix_bridge_hookshot_/g' \
+  -e 's/matrix_mautrix_androidsms_/matrix_bridge_mautrix_wsproxy_androidsms_/g' \
+  -e 's/matrix_mautrix_bluesky_/matrix_bridge_mautrix_bluesky_/g' \
+  -e 's/matrix_mautrix_discord_/matrix_bridge_mautrix_discord_/g' \
+  -e 's/matrix_mautrix_gmessages_/matrix_bridge_mautrix_gmessages_/g' \
+  -e 's/matrix_mautrix_googlechat_/matrix_bridge_mautrix_googlechat_/g' \
+  -e 's/matrix_mautrix_gvoice_/matrix_bridge_mautrix_gvoice_/g' \
+  -e 's/matrix_mautrix_imessage_/matrix_bridge_mautrix_wsproxy_imessage_/g' \
+  -e 's/matrix_mautrix_meta_instagram_/matrix_bridge_mautrix_meta_instagram_/g' \
+  -e 's/matrix_mautrix_meta_messenger_/matrix_bridge_mautrix_meta_messenger_/g' \
+  -e 's/matrix_mautrix_signal_wsproxy_syncproxy_connection_string/matrix_bridge_mautrix_wsproxy_syncproxy_connection_string/g' \
+  -e 's/matrix_mautrix_signal_/matrix_bridge_mautrix_signal_/g' \
+  -e 's/matrix_mautrix_slack_/matrix_bridge_mautrix_slack_/g' \
+  -e 's/matrix_mautrix_telegram_/matrix_bridge_mautrix_telegram_/g' \
+  -e 's/matrix_mautrix_twitter_/matrix_bridge_mautrix_twitter_/g' \
+  -e 's/matrix_mautrix_whatsapp_/matrix_bridge_mautrix_whatsapp_/g' \
+  -e 's/matrix_mautrix_wsproxy_/matrix_bridge_mautrix_wsproxy_/g' \
+  -e 's/matrix_meshtastic_relay_/matrix_bridge_meshtastic_relay_/g' \
+  -e 's/matrix_mx_puppet_groupme_/matrix_bridge_mx_puppet_groupme_/g' \
+  -e 's/matrix_mx_puppet_steam_/matrix_bridge_mx_puppet_steam_/g' \
+  -e 's/matrix_postmoogle_/matrix_bridge_postmoogle_/g' \
+  -e 's/matrix_rustpush_bridge_/matrix_bridge_rustpush_/g' \
+  -e 's/matrix_sms_bridge_/matrix_bridge_sms_/g' \
+  -e 's/matrix_steam_bridge_/matrix_bridge_steam_/g' \
+  -e 's/matrix_wechat_/matrix_bridge_wechat_/g' \
+  -e 's/matrix_playbook_migration_matrix_postmoogle_migration_validation_enabled/matrix_playbook_migration_matrix_bridge_postmoogle_migration_validation_enabled/g' \
+  vars.yml
+```
+
+The `sed` command only replaces prefixes followed by an underscore, so values that intentionally match old prefixes (like the default database names, e.g. `matrix_mautrix_telegram`) are not affected.
+
+**Note**: if you have defined your own custom variables whose names embed an old prefix (e.g. `vault_matrix_postmoogle_password` referencing a secret in an Ansible Vault file), the `sed` command renames such references too. Either rename your custom variables to match (including their definitions in encrypted vault files, which `sed` cannot reach), or revert those spots manually.
+
+# 2026-07-15
+
+## Google Voice bridging
+
+The playbook can now bridge [Google Voice](https://voice.google.com/) via the [mautrix-gvoice](https://github.com/mautrix/gvoice) bridge. Text and media flow both ways, and portal rooms build themselves for your recent conversations.
+
+Login is by cookie, not a paired phone: you copy the cookies from a browser signed in to voice.google.com and hand them to the bot. Google expires them on its own schedule, so expect to log in again every so often. See [Setting up Mautrix Google Voice bridging](./docs/configuring-playbook-bridge-mautrix-gvoice.md) to get started.
+
+## matrix-appservice-kakaotalk has been removed from the playbook
+
+The [matrix-appservice-kakaotalk](./docs/configuring-playbook-bridge-appservice-kakaotalk.md) bridge has been removed from the playbook. This component could only be installed by self-building its source code, and its upstream repository has become unreachable, which makes installation impossible. The bridge was also based on the unmaintained node-kakao library, and there have been reports that using it may get KakaoTalk accounts banned.
+
+The playbook will let you know if you're using any `matrix_appservice_kakaotalk_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-bridge-appservice-kakaotalk.md#uninstalling-the-component-manually).
+
+## Dedicated CAPTCHA variables for Matrix Authentication Service
+
+[Matrix Authentication Service](./docs/configuring-playbook-matrix-authentication-service.md) can now be protected with CAPTCHA (ReCaptcha v2, Cloudflare Turnstile, or hCaptcha) via dedicated variables, instead of going through `matrix_authentication_service_configuration_extension_yaml`. See the [captcha documentation](./docs/configuring-captcha.md#matrix-authentication-service) for details.
+
+# 2026-07-14
+
+## The playbook no longer ships a custom welcome page for Element Web
+
+Element Web [redesigned its welcome page](https://github.com/element-hq/element-web/pull/33211) (the screen shown at `/#/welcome` before logging in) into a built-in component and no longer loads a custom `welcome.html` file by default. Since the playbook upgraded to an Element Web version containing that change (spring 2026), the custom welcome page the playbook installed (and the variables customizing it) had silently stopped having any effect.
+
+The playbook now embraces the new upstream behavior and no longer ships its own `welcome.html`. The following variables have been removed and the playbook will let you know if you're still using them: `matrix_client_element_welcome_headline`, `matrix_client_element_welcome_text`, `matrix_client_element_welcome_logo_link` and `matrix_client_element_page_template_welcome_path`.
+
+Most welcome page customizations keep working, because they go through Element Web's branding configuration, which the new welcome page still honors:
+
+- a custom logo, via `matrix_client_element_welcome_logo` (or `matrix_client_element_branding_auth_header_logo_url`)
+- a custom background, via `matrix_client_element_branding_welcome_background_url`
+
+If you need a fully custom welcome page, you can self-host an HTML page and point Element Web at it, like this:
+
+```yaml
+matrix_client_element_configuration_extension_json: |
+  {
+    "embedded_pages": {
+      "welcome_url": "https://example.com/my-welcome.html"
+    }
+  }
+```
+
+## BorgBackup now includes Synapse's local thumbnails
+
+For Synapse servers, the built-in [BorgBackup](./docs/configuring-playbook-backup-borg.md) integration no longer excludes the media store's `local_thumbnails` directory from backups.
+
+Synapse only generates thumbnails of local media at upload time (unless `dynamic_thumbnails` is enabled, which the playbook does not do), and there is no tooling to regenerate them. Restoring a backup made with the previous exclusion list therefore left all previously uploaded local images without thumbnails. The [official Synapse backup guide](https://element-hq.github.io/synapse/latest/usage/administration/backups.html) recommends backing this directory up, and the playbook now follows that recommendation.
+
+Expect your backups to grow somewhat, depending on how much image media your local users have uploaded. If you prefer the old behavior, you can redefine `backup_borg_location_exclude_patterns` in your `vars.yml`.
+
+# 2026-07-12
+
+## matrix-registration-bot has been removed from the playbook
+
+The [matrix-registration-bot](./docs/configuring-playbook-bot-matrix-registration-bot.md) service has been removed from the playbook, as it has been unmaintained.
+
+The playbook will let you know if you're using any `matrix_bot_matrix_registration_bot_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-bot-matrix-registration-bot.md#uninstalling-the-component-manually).
+
+## Continuwuity v26 no longer supports LDAP
+
+The playbook now installs [Continuwuity](./docs/configuring-playbook-continuwuity.md) v26, a major upgrade from the v0.5.x series which **removes LDAP authentication support** (see the [v26.6.0 release notes](https://forgejo.ellis.link/continuwuation/continuwuity/releases/tag/v26.6.0)).
+
+The playbook never exposed dedicated variables for Continuwuity's LDAP support, so most people are unaffected. However, if you had enabled LDAP via `matrix_continuwuity_environment_variables_extension` or a custom configuration template, you'll need to migrate to another authentication method, such as the newly introduced [OpenID Connect support](https://continuwuity.org/guides/oidc).
+
 # 2026-06-29
 
 ## Support for running on Synology DSM

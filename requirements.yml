@@ -4,7 +4,7 @@
   version: v1.0.0-7
   name: auxiliary
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-backup_borg.git
-  version: v1.4.4-2.1.4-1
+  version: v1.4.4-2.1.6-2
   name: backup_borg
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-cinny.git
   version: v4.12.3-0
@@ -33,7 +33,7 @@
   version: v4.99.1-r0-2-1
   name: exim_relay
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-grafana.git
-  version: v13.0.2-0
+  version: v13.0.2-1
   name: grafana
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-hydrogen.git
   version: v0.5.1-5
@@ -42,7 +42,7 @@
   version: v11031-0
   name: jitsi
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-livekit-server.git
-  version: v1.13.3-0
+  version: v1.13.4-0
   name: livekit_server
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-ntfy.git
   version: v2.26.0-0
@@ -57,7 +57,7 @@
   version: dd6e15246b7a9a2d921e0b3f9cd8a4a917a1bb2f
   name: playbook_state_preserver
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-postgres.git
-  version: v18.4-0
+  version: v18.4-2
   name: postgres
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-postgres-backup.git
   version: v18-3
@@ -66,16 +66,16 @@
   version: v3.13.1-0
   name: prometheus
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-prometheus-nginxlog-exporter.git
-  version: v1.10.0-4
+  version: v1.10.0-5
   name: prometheus_nginxlog_exporter
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-prometheus-node-exporter.git
-  version: v1.12.0-0
+  version: v1.12.1-0
   name: prometheus_node_exporter
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-prometheus-postgres-exporter.git
   version: v0.20.1-0
   name: prometheus_postgres_exporter
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-sable.git
-  version: v1.19.3-0
+  version: v1.20.0-0
   name: sable
 - src: git+https://github.com/devture/com.devture.ansible.role.systemd_docker_base.git
   version: v1.5.0-0
@@ -87,7 +87,7 @@
   version: v1.1.0-1
   name: timesync
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-traefik.git
-  version: v3.7.7-0
+  version: v3.7.7-1
   name: traefik
 - src: git+https://github.com/mother-of-all-self-hosting/ansible-role-traefik-certs-dumper.git
   version: v2.11.4-0

@@ -95,6 +95,8 @@ Web clients for Matrix that you can host on your own domains.
 
 - [Setting up FluffyChat Web](configuring-playbook-client-fluffychat-web.md), if you've enabled [FluffyChat Web](https://github.com/krille-chan/fluffychat), a cute cross-platform messenger (web, iOS, Android) for Matrix written in [Flutter](https://flutter.dev/)
 
+- [Setting up Commet](configuring-playbook-client-commet.md), if you've enabled [Commet](https://github.com/commetchat/commet), a Matrix web client
+
 
 ### Authentication and user-related
 
@@ -144,6 +146,8 @@ Bridges can be used to connect your Matrix installation with third-party communi
 
 - [Setting up Mautrix Google Messages bridging](configuring-playbook-bridge-mautrix-gmessages.md)
 
+- [Setting up Mautrix Google Voice bridging](configuring-playbook-bridge-mautrix-gvoice.md)
+
 - [Setting up Mautrix Whatsapp bridging](configuring-playbook-bridge-mautrix-whatsapp.md)
 
 - [Setting up Instagram bridging via Mautrix Meta](configuring-playbook-bridge-mautrix-meta-instagram.md)
@@ -163,8 +167,6 @@ Bridges can be used to connect your Matrix installation with third-party communi
 - [Setting up Appservice IRC bridging](configuring-playbook-bridge-appservice-irc.md)
 
 - [Setting up Appservice Discord bridging](configuring-playbook-bridge-appservice-discord.md)
-
-- [Setting up Appservice Kakaotalk bridging](configuring-playbook-bridge-appservice-kakaotalk.md)
 
 - [Setting up Beeper LinkedIn bridging](configuring-playbook-bridge-beeper-linkedin.md)
 
@@ -195,8 +197,6 @@ Bots provide various additional functionality to your installation.
 - [Setting up baibot](configuring-playbook-bot-baibot.md) — a bot through which you can talk to various [AI](https://en.wikipedia.org/wiki/Artificial_intelligence) / [Large Language Models](https://en.wikipedia.org/wiki/Large_language_model) services (the privacy-first [Venice](configuring-playbook-bot-baibot.md#venice) we recommend, [OpenAI](https://openai.com/)'s [ChatGPT](https://openai.com/blog/chatgpt/), and [others](https://github.com/etkecc/baibot/blob/main/docs/providers.md))
 
 - [Setting up matrix-reminder-bot](configuring-playbook-bot-matrix-reminder-bot.md) — a bot to remind you about stuff
-
-- [Setting up matrix-registration-bot](configuring-playbook-bot-matrix-registration-bot.md) — a bot to create and manage registration tokens to invite users
 
 - [Setting up maubot](configuring-playbook-bot-maubot.md) — a plugin-based Matrix bot system
 
@@ -265,6 +265,8 @@ Various services that don't fit any other categories.
 
 - [Setting up the Sliding Sync proxy](configuring-playbook-sliding-sync-proxy.md) for clients which require Sliding Sync support (like old Element X versions, before it got switched to Simplified Sliding Sync)
 
+- [Setting up Appservice Kakaotalk bridging](configuring-playbook-bridge-appservice-kakaotalk.md) (removed; the upstream repository has become unreachable and the component could only be installed by self-building it)
+
 - [Setting up Appservice Slack bridging](configuring-playbook-bridge-appservice-slack.md) (removed; this component has been discontinued)
 
 - [Setting up Appservice Webhooks bridging](configuring-playbook-bridge-appservice-webhooks.md) (deprecated; the bridge's author suggests taking a look at [matrix-hookshot](https://github.com/matrix-org/matrix-hookshot) as a replacement, which can also be [installed using this playbook](configuring-playbook-bridge-hookshot.md))
@@ -284,6 +286,8 @@ Various services that don't fit any other categories.
 - [Setting up matrix-ldap-registration-proxy](configuring-playbook-matrix-ldap-registration-proxy.md) (removed; the repository of the source code has been removed)
 
 - [Setting up matrix-registration](configuring-playbook-matrix-registration.md) (removed; this component has been unmaintained)
+
+- [Setting up matrix-registration-bot](configuring-playbook-bot-matrix-registration-bot.md) (removed; this component has been unmaintained)
 
 - [Setting up Mautrix Facebook bridging](configuring-playbook-bridge-mautrix-facebook.md) (deprecated in favor of the Messenger/Instagram bridge with [mautrix-meta-messenger](configuring-playbook-bridge-mautrix-meta-messenger.md))
 

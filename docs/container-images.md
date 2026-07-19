@@ -91,6 +91,7 @@ Bridges can be used to connect your Matrix installation with third-party communi
 | [mautrix-slack](configuring-playbook-bridge-mautrix-slack.md) | [mautrix/slack](https://mau.dev/mautrix/slack/container_registry) | ❌ | Bridge to [Slack](https://slack.com/) |
 | [mautrix-telegram](configuring-playbook-bridge-mautrix-telegram.md) | [mautrix/telegram](https://mau.dev/mautrix/telegram/container_registry) | ❌ | Bridge to [Telegram](https://telegram.org/) |
 | [mautrix-gmessages](configuring-playbook-bridge-mautrix-gmessages.md) | [mautrix/gmessages](https://mau.dev/mautrix/gmessages/container_registry) | ❌ | Bridge to [Google Messages](https://messages.google.com/) |
+| [mautrix-gvoice](configuring-playbook-bridge-mautrix-gvoice.md) | [mautrix/gvoice](https://mau.dev/mautrix/gvoice/container_registry) | ❌ | Bridge to [Google Voice](https://voice.google.com/) |
 | [mautrix-whatsapp](configuring-playbook-bridge-mautrix-whatsapp.md) | [mautrix/whatsapp](https://mau.dev/mautrix/whatsapp/container_registry) | ❌ | Bridge to [WhatsApp](https://www.whatsapp.com/) |
 | [mautrix-wsproxy](configuring-playbook-bridge-mautrix-wsproxy.md) | [mautrix/wsproxy](https://mau.dev/mautrix/wsproxy/container_registry) | ❌ | Bridge to Android SMS or Apple iMessage |
 | [mautrix-twitter](configuring-playbook-bridge-mautrix-twitter.md) | [mautrix/twitter](https://mau.dev/mautrix/twitter/container_registry) | ❌ | Bridge to [Twitter](https://twitter.com/) |
@@ -99,7 +100,6 @@ Bridges can be used to connect your Matrix installation with third-party communi
 | [mautrix-signal](configuring-playbook-bridge-mautrix-signal.md) | [mautrix/signal](https://mau.dev/mautrix/signal/container_registry) | ❌ | Bridge to [Signal](https://www.signal.org/) |
 | [beeper-linkedin](configuring-playbook-bridge-beeper-linkedin.md) | [beeper/linkedin](https://ghcr.io/beeper/linkedin) | ❌ | Bridge to [LinkedIn](https://www.linkedin.com/) |
 | [matrix-appservice-irc](configuring-playbook-bridge-appservice-irc.md) | [matrixdotorg/matrix-appservice-irc](https://hub.docker.com/r/matrixdotorg/matrix-appservice-irc) | ❌ | Bridge to [IRC](https://wikipedia.org/wiki/Internet_Relay_Chat) |
-| [matrix-appservice-kakaotalk](configuring-playbook-bridge-appservice-kakaotalk.md) | Self-building | ❌ | Bridge to [Kakaotalk](https://www.kakaocorp.com/page/service/service/KakaoTalk?lang=ENG) |
 | [matrix-appservice-discord](configuring-playbook-bridge-appservice-discord.md) | [matrix-org/matrix-appservice-discord](https://ghcr.io/matrix-org/matrix-appservice-discord) | ❌ | Bridge to [Discord](https://discordapp.com/) |
 | [matrix-hookshot](configuring-playbook-bridge-hookshot.md) | [halfshot/matrix-hookshot](https://hub.docker.com/r/halfshot/matrix-hookshot) | ❌ | Bridge for generic webhooks and multiple project management services, such as GitHub, GitLab, Figma, and Jira in particular |
 | [matrix-sms-bridge](configuring-playbook-bridge-matrix-bridge-sms.md) | [folivonet/matrix-sms-bridge](https://hub.docker.com/repository/docker/folivonet/matrix-sms-bridge) | ❌ | Bridge to SMS |
@@ -120,7 +120,6 @@ Bots provide various additional functionality to your installation.
 | ------- | --------------- | -------- | ----------- |
 | [baibot](configuring-playbook-bot-baibot.md) | [etke.cc/baibot](https://ghcr.io/etkecc/baibot) | ❌ | Bot that exposes the power of [AI](https://en.wikipedia.org/wiki/Artificial_intelligence) / [Large Language Models](https://en.wikipedia.org/wiki/Large_language_model) to you |
 | [matrix-reminder-bot](configuring-playbook-bot-matrix-reminder-bot.md) | [anoa/matrix-reminder-bot](https://hub.docker.com/r/anoa/matrix-reminder-bot) | ❌ | Bot for scheduling one-off & recurring reminders and alarms |
-| [matrix-registration-bot](configuring-playbook-bot-matrix-registration-bot.md) | [moanos/matrix-registration-bot](https://hub.docker.com/r/moanos/matrix-registration-bot/) | ❌ | Bot for invitations by creating and managing registration tokens |
 | [maubot](configuring-playbook-bot-maubot.md) | [dock.mau.dev/maubot/maubot](https://mau.dev/maubot/maubot/container_registry) | ❌ | Plugin-based Matrix bot system |
 | [Honoroit](configuring-playbook-bot-honoroit.md) | [etke.cc/honoroit](https://github.com/etkecc/honoroit/container_registry) | ❌ | Helpdesk bot |
 | [Mjolnir](configuring-playbook-bot-mjolnir.md) | [matrixdotorg/mjolnir](https://hub.docker.com/r/matrixdotorg/mjolnir) | ❌ | Moderation tool for Matrix |
@@ -181,6 +180,7 @@ The list of the deprecated or unmaintained services is available [here](configur
 | [matrix-chatgpt-bot](configuring-playbook-bot-chatgpt.md) | [matrixgpt/matrix-chatgpt-bot](https://ghcr.io/matrixgpt/matrix-chatgpt-bot) | ❌ | Accessing ChatGPT via your favourite Matrix client |
 | [matrix-ldap-registration-proxy](configuring-playbook-matrix-ldap-registration-proxy.md) | [activism.international/matrix_ldap_registration_proxy](https://gitlab.com/activism.international/matrix_ldap_registration_proxy/container_registry) | ❌ | Proxy that handles Matrix registration requests and forwards them to LDAP |
 | [matrix-registration](configuring-playbook-matrix-registration.md) | [zeratax/matrix-registration](https://hub.docker.com/r/devture/zeratax-matrix-registration/) | ❌ | Simple python application to have a token based Matrix registration |
+| [matrix-registration-bot](configuring-playbook-bot-matrix-registration-bot.md) | [moanos/matrix-registration-bot](https://hub.docker.com/r/moanos/matrix-registration-bot/) | ❌ | Bot for invitations by creating and managing registration tokens |
 | [mautrix-facebook](configuring-playbook-bridge-mautrix-facebook.md) | [mautrix/facebook](https://mau.dev/mautrix/facebook/container_registry) | ❌ | Bridge to [Facebook](https://facebook.com/) |
 | [mautrix-instagram](configuring-playbook-bridge-mautrix-instagram.md) | [mautrix/instagram](https://mau.dev/mautrix/instagram/container_registry) | ❌ | Bridge to [Instagram](https://instagram.com/) |
 | [mx-puppet-discord](configuring-playbook-bridge-mx-puppet-discord.md) | [mx-puppet/discord/mx-puppet-discord](https://gitlab.com/mx-puppet/discord/mx-puppet-discord/container_registry) | ❌ | Bridge to [Discord](https://discordapp.com/) |

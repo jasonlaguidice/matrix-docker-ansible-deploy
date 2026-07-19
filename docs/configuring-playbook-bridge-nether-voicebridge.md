@@ -107,14 +107,11 @@ Note: self-build requires `cmake`, `clang`, `libopus-dev`, `protobuf-compiler`, 
 
 ## Installing
 
-After configuring, run the playbook:
+After configuring the playbook, run it with [playbook tags](playbook-tags.md) as below:
 
-```sh
-ansible-playbook -i inventory/hosts setup.yml --tags=setup-matrix-nether-voicebridge,start
-```
-
-Or as part of a full install:
-
+<!-- NOTE: let this conservative command run (instead of install-all) to make it clear that failure of the command means something is clearly broken. -->
 ```sh
 ansible-playbook -i inventory/hosts setup.yml --tags=setup-all,start
 ```
+
+Installing with a narrower tag like `--tags=setup-matrix-nether-voicebridge,start` is not enough on its own: the homeserver only learns about the bridge's appservice registration (and gets the registration file mounted into its container) when the homeserver role itself re-runs, which happens under `setup-all` / `setup-synapse` but not under `setup-matrix-nether-voicebridge`. Skipping it leaves the bridge running with a valid-looking token that the homeserver has never been told to trust, which surfaces as `401 M_UNKNOWN_TOKEN` errors in the bridge's logs on appservice login.

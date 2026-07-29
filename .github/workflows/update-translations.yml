@@ -26,13 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
       # Setting up recommended prerequisites
       # See: i18n/README.md
-      - uses: astral-sh/setup-uv@v8.3.2
+      - uses: astral-sh/setup-uv@v9.0.0
       - uses: extractions/setup-just@v4
 
       # TODO: optimize when we start publishing translations and integrate a Weblate instance

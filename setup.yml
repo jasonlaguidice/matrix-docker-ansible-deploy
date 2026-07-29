@@ -57,6 +57,7 @@
     - custom/matrix-bridge-appservice-discord
     - custom/matrix-bridge-appservice-irc
     - custom/matrix-bridge-beeper-linkedin
+    - custom/matrix-bridge-beeper-line
     - custom/matrix-bridge-wechat
     - custom/matrix-bridge-mautrix-twitter
     - custom/matrix-bridge-mautrix-googlechat
@@ -66,6 +67,7 @@
     - custom/matrix-bridge-mautrix-signal
     - custom/matrix-bridge-mautrix-gmessages
     - custom/matrix-bridge-mautrix-gvoice
+    - custom/matrix-bridge-mautrix-linkedin
     - custom/matrix-bridge-mautrix-whatsapp
     - custom/matrix-bridge-mautrix-wsproxy
     - custom/matrix-bridge-mautrix-discord

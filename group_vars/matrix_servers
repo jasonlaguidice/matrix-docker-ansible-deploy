@@ -104,6 +104,8 @@ matrix_homeserver_container_extra_arguments_auto: |
     +
     (['--mount type=bind,src=' + matrix_bridge_beeper_linkedin_config_path + '/registration.yaml,dst=/matrix-beeper-linkedin-registration.yaml,ro'] if matrix_bridge_beeper_linkedin_enabled else [])
     +
+    (['--mount type=bind,src=' + matrix_bridge_beeper_line_config_path + '/registration.yaml,dst=/matrix-beeper-line-registration.yaml,ro'] if matrix_bridge_beeper_line_enabled else [])
+    +
     (['--mount type=bind,src=' + matrix_bridge_wechat_config_path + '/registration.yaml,dst=/matrix-wechat-registration.yaml,ro'] if matrix_bridge_wechat_enabled else [])
     +
     (['--mount type=bind,src=' + matrix_bridge_heisenbridge_base_path + '/registration.yaml,dst=/heisenbridge-registration.yaml,ro'] if matrix_bridge_heisenbridge_enabled else [])
@@ -133,6 +135,8 @@ matrix_homeserver_container_extra_arguments_auto: |
     (['--mount type=bind,src=' + matrix_bridge_mautrix_gmessages_config_path + '/registration.yaml,dst=/matrix-mautrix-gmessages-registration.yaml,ro'] if matrix_bridge_mautrix_gmessages_enabled else [])
     +
     (['--mount type=bind,src=' + matrix_bridge_mautrix_gvoice_config_path + '/registration.yaml,dst=/matrix-mautrix-gvoice-registration.yaml,ro'] if matrix_bridge_mautrix_gvoice_enabled else [])
+    +
+    (['--mount type=bind,src=' + matrix_bridge_mautrix_linkedin_config_path + '/registration.yaml,dst=/matrix-mautrix-linkedin-registration.yaml,ro'] if matrix_bridge_mautrix_linkedin_enabled else [])
     +
     (['--mount type=bind,src=' + matrix_bridge_mautrix_whatsapp_config_path + '/registration.yaml,dst=/matrix-mautrix-whatsapp-registration.yaml,ro'] if matrix_bridge_mautrix_whatsapp_enabled else [])
     +
@@ -165,6 +169,8 @@ matrix_homeserver_app_service_config_files_auto: |
     +
     (['/matrix-beeper-linkedin-registration.yaml'] if matrix_bridge_beeper_linkedin_enabled else [])
     +
+    (['/matrix-beeper-line-registration.yaml'] if matrix_bridge_beeper_line_enabled else [])
+    +
     (['/matrix-wechat-registration.yaml'] if matrix_bridge_wechat_enabled else [])
     +
     (['/heisenbridge-registration.yaml'] if matrix_bridge_heisenbridge_enabled else [])
@@ -194,6 +200,8 @@ matrix_homeserver_app_service_config_files_auto: |
     (['/matrix-mautrix-gmessages-registration.yaml'] if matrix_bridge_mautrix_gmessages_enabled else [])
     +
     (['/matrix-mautrix-gvoice-registration.yaml'] if matrix_bridge_mautrix_gvoice_enabled else [])
+    +
+    (['/matrix-mautrix-linkedin-registration.yaml'] if matrix_bridge_mautrix_linkedin_enabled else [])
     +
     (['/matrix-mautrix-whatsapp-registration.yaml'] if matrix_bridge_mautrix_whatsapp_enabled else [])
     +
@@ -382,6 +390,13 @@ devture_systemd_service_manager_services_list_auto: |
     }] if matrix_bridge_beeper_linkedin_enabled else [])
     +
     ([{
+      'name': 'matrix-beeper-line.service',
+      'priority': 2000,
+      'restart_necessary': (matrix_bridge_beeper_line_restart_necessary | bool),
+      'groups': ['matrix', 'bridges', 'beeper-line'],
+    }] if matrix_bridge_beeper_line_enabled else [])
+    +
+    ([{
       'name': 'matrix-wechat.service',
       'priority': 2000,
       'restart_necessary': (matrix_bridge_wechat_restart_necessary | bool),
@@ -499,6 +514,13 @@ devture_systemd_service_manager_services_list_auto: |
       'restart_necessary': (matrix_bridge_mautrix_gvoice_restart_necessary | bool),
       'groups': ['matrix', 'bridges', 'mautrix-gvoice'],
     }] if matrix_bridge_mautrix_gvoice_enabled else [])
+    +
+    ([{
+      'name': 'matrix-mautrix-linkedin.service',
+      'priority': 2000,
+      'restart_necessary': (matrix_bridge_mautrix_linkedin_restart_necessary | bool),
+      'groups': ['matrix', 'bridges', 'mautrix-linkedin'],
+    }] if matrix_bridge_mautrix_linkedin_enabled else [])
     +
     ([{
       'name': 'matrix-mautrix-whatsapp.service',
@@ -1352,6 +1374,79 @@ matrix_bridge_beeper_linkedin_database_password: "{{ (matrix_homeserver_generic_
 # /matrix-bridge-beeper-linkedin
 #
 ######################################################################
+
+
+######################################################################
+#
+# matrix-bridge-beeper-line
+#
+######################################################################
+
+# We don't enable bridges by default.
+matrix_bridge_beeper_line_enabled: false
+
+matrix_bridge_beeper_line_systemd_required_services_list_auto: |
+  {{
+    matrix_addons_homeserver_systemd_services_list
+    +
+    ([postgres_identifier ~ '.service'] if (postgres_enabled and matrix_bridge_beeper_line_database_hostname == postgres_connection_hostname) else [])
+  }}
+
+matrix_bridge_beeper_line_container_image_registry_prefix_upstream: "{{ matrix_container_global_registry_prefix_override if matrix_container_global_registry_prefix_override else matrix_bridge_beeper_line_container_image_registry_prefix_upstream_default }}"
+
+matrix_bridge_beeper_line_container_image_self_build: "{{ matrix_architecture not in ['amd64'] }}"
+
+matrix_bridge_beeper_line_container_network: "{{ matrix_addons_container_network }}"
+
+matrix_bridge_beeper_line_container_additional_networks_auto: |-
+  {{
+    (
+      ([] if matrix_addons_homeserver_container_network == '' else [matrix_addons_homeserver_container_network])
+      +
+      ([postgres_container_network] if (postgres_enabled and matrix_bridge_beeper_line_database_hostname == postgres_connection_hostname and matrix_bridge_beeper_line_container_network != postgres_container_network) else [])
+      +
+      ([matrix_playbook_reverse_proxyable_services_additional_network] if (matrix_playbook_reverse_proxyable_services_additional_network and matrix_bridge_beeper_line_container_labels_traefik_enabled) else [])
+    ) | unique
+  }}
+
+matrix_bridge_beeper_line_container_labels_traefik_enabled: "{{ matrix_playbook_reverse_proxy_type in ['playbook-managed-traefik', 'other-traefik-container'] }}"
+matrix_bridge_beeper_line_container_labels_traefik_docker_network: "{{ matrix_playbook_reverse_proxyable_services_additional_network }}"
+matrix_bridge_beeper_line_container_labels_traefik_entrypoints: "{{ traefik_entrypoint_primary }}"
+matrix_bridge_beeper_line_container_labels_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+
+matrix_bridge_beeper_line_appservice_token: "{{ (matrix_homeserver_generic_secret_key + ':line.as.token') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_beeper_line_homeserver_address: "{{ matrix_addons_homeserver_client_api_url }}"
+matrix_bridge_beeper_line_homeserver_token: "{{ (matrix_homeserver_generic_secret_key + ':line.hs.token') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_beeper_line_homeserver_async_media: "{{ matrix_homeserver_implementation in ['synapse'] }}"
+
+matrix_bridge_beeper_line_provisioning_shared_secret: "{{ (matrix_homeserver_generic_secret_key + ':line.prov') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_beeper_line_double_puppet_secrets_auto: |-
+  {{
+    ({
+      matrix_bridge_beeper_line_homeserver_domain: ("as_token:" + matrix_appservice_double_puppet_registration_as_token)
+    })
+    if matrix_appservice_double_puppet_enabled
+    else {}
+  }}
+
+matrix_bridge_beeper_line_scheme: "{{ 'https' if matrix_playbook_ssl_enabled else 'http' }}"
+matrix_bridge_beeper_line_exposure_enabled: "{{ matrix_bridges_exposure_enabled }}"
+matrix_bridge_beeper_line_exposure_hostname: "{{ matrix_bridges_exposure_hostname }}"
+matrix_bridge_beeper_line_exposure_path_prefix: "{{ matrix_bridges_exposure_path_prefix }}/line"
+
+matrix_bridge_beeper_line_database_engine: "{{ 'postgres' if postgres_enabled else 'sqlite' }}"
+matrix_bridge_beeper_line_database_hostname: "{{ postgres_connection_hostname if postgres_enabled else '' }}"
+matrix_bridge_beeper_line_database_password: "{{ (matrix_homeserver_generic_secret_key + ':line.db') | hash('sha512') | to_uuid }}"
+
+######################################################################
+#
+# /matrix-bridge-beeper-line
+#
+######################################################################
+
 
 ######################################################################
 #
@@ -2299,6 +2394,87 @@ matrix_bridge_mautrix_gvoice_database_password: "{{ (matrix_homeserver_generic_s
 ######################################################################
 #
 # /matrix-bridge-mautrix-gvoice
+#
+######################################################################
+
+######################################################################
+#
+# matrix-bridge-mautrix-linkedin
+#
+######################################################################
+
+# We don't enable bridges by default.
+matrix_bridge_mautrix_linkedin_enabled: false
+
+matrix_bridge_mautrix_linkedin_systemd_required_services_list_auto: |
+  {{
+    matrix_addons_homeserver_systemd_services_list
+    +
+    ([postgres_identifier ~ '.service'] if (postgres_enabled and matrix_bridge_mautrix_linkedin_database_hostname == postgres_connection_hostname) else [])
+  }}
+
+matrix_bridge_mautrix_linkedin_container_image_registry_prefix_upstream: "{{ matrix_container_global_registry_prefix_override if matrix_container_global_registry_prefix_override else matrix_bridge_mautrix_linkedin_container_image_registry_prefix_upstream_default }}"
+
+matrix_bridge_mautrix_linkedin_container_image_self_build: "{{ matrix_architecture not in ['arm64', 'amd64'] }}"
+
+matrix_bridge_mautrix_linkedin_container_network: "{{ matrix_addons_container_network }}"
+
+matrix_bridge_mautrix_linkedin_container_additional_networks_auto: |-
+  {{
+    (
+      ([] if matrix_addons_homeserver_container_network == '' else [matrix_addons_homeserver_container_network])
+      +
+      ([postgres_container_network] if (postgres_enabled and matrix_bridge_mautrix_linkedin_database_hostname == postgres_connection_hostname and matrix_bridge_mautrix_linkedin_container_network != postgres_container_network) else [])
+      +
+      ([matrix_playbook_reverse_proxyable_services_additional_network] if (matrix_playbook_reverse_proxyable_services_additional_network and matrix_bridge_mautrix_linkedin_container_labels_traefik_enabled) else [])
+    ) | unique
+  }}
+
+matrix_bridge_mautrix_linkedin_container_labels_traefik_enabled: "{{ matrix_playbook_reverse_proxy_type in ['playbook-managed-traefik', 'other-traefik-container'] }}"
+matrix_bridge_mautrix_linkedin_container_labels_traefik_docker_network: "{{ matrix_playbook_reverse_proxyable_services_additional_network }}"
+matrix_bridge_mautrix_linkedin_container_labels_traefik_entrypoints: "{{ traefik_entrypoint_primary }}"
+matrix_bridge_mautrix_linkedin_container_labels_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+
+matrix_bridge_mautrix_linkedin_container_labels_metrics_middleware_basic_auth_enabled: "{{ matrix_metrics_exposure_http_basic_auth_enabled }}"
+matrix_bridge_mautrix_linkedin_container_labels_metrics_middleware_basic_auth_users: "{{ matrix_metrics_exposure_http_basic_auth_users }}"
+
+matrix_bridge_mautrix_linkedin_appservice_token: "{{ (matrix_homeserver_generic_secret_key + ':linkedin.as.token') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_mautrix_linkedin_homeserver_address: "{{ matrix_addons_homeserver_client_api_url }}"
+matrix_bridge_mautrix_linkedin_homeserver_token: "{{ (matrix_homeserver_generic_secret_key + ':linkedin.hs.token') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_mautrix_linkedin_provisioning_shared_secret: "{{ (matrix_homeserver_generic_secret_key + ':linkedin.prov') | hash('sha512') | to_uuid }}"
+
+matrix_bridge_mautrix_linkedin_homeserver_async_media: "{{ matrix_homeserver_implementation in ['synapse'] }}"
+
+matrix_bridge_mautrix_linkedin_double_puppet_secrets_auto: |-
+  {{
+    {
+      matrix_bridge_mautrix_linkedin_homeserver_domain: ("as_token:" + matrix_appservice_double_puppet_registration_as_token)
+    }
+    if matrix_appservice_double_puppet_enabled
+    else {}
+  }}
+
+matrix_bridge_mautrix_linkedin_metrics_enabled: "{{ prometheus_enabled or matrix_metrics_exposure_enabled }}"
+
+matrix_bridge_mautrix_linkedin_metrics_proxying_enabled: "{{ matrix_bridge_mautrix_linkedin_metrics_enabled and matrix_metrics_exposure_enabled }}"
+matrix_bridge_mautrix_linkedin_metrics_proxying_hostname: "{{ matrix_metrics_exposure_hostname }}"
+matrix_bridge_mautrix_linkedin_metrics_proxying_path_prefix: "{{ matrix_metrics_exposure_path_prefix }}/mautrix-linkedin"
+
+matrix_bridge_mautrix_linkedin_scheme: "{{ 'https' if matrix_playbook_ssl_enabled else 'http' }}"
+matrix_bridge_mautrix_linkedin_exposure_enabled: "{{ matrix_bridges_exposure_enabled }}"
+matrix_bridge_mautrix_linkedin_exposure_hostname: "{{ matrix_bridges_exposure_hostname }}"
+matrix_bridge_mautrix_linkedin_exposure_path_prefix: "{{ matrix_bridges_exposure_path_prefix }}/linkedin"
+
+# Postgres is the default, except if not using internal Postgres server
+matrix_bridge_mautrix_linkedin_database_engine: "{{ 'postgres' if postgres_enabled else 'sqlite' }}"
+matrix_bridge_mautrix_linkedin_database_hostname: "{{ postgres_connection_hostname if postgres_enabled else '' }}"
+matrix_bridge_mautrix_linkedin_database_password: "{{ (matrix_homeserver_generic_secret_key + ':mau.linkedin.db') | hash('sha512') | to_uuid }}"
+
+######################################################################
+#
+# /matrix-bridge-mautrix-linkedin
 #
 ######################################################################
 
@@ -4210,6 +4386,12 @@ postgres_managed_databases_auto: |
     }] if (matrix_bridge_beeper_linkedin_enabled and matrix_bridge_beeper_linkedin_database_engine == 'postgres' and matrix_bridge_beeper_linkedin_database_hostname == postgres_connection_hostname) else [])
     +
     ([{
+      'name': matrix_bridge_beeper_line_database_name,
+      'username': matrix_bridge_beeper_line_database_username,
+      'password': matrix_bridge_beeper_line_database_password,
+    }] if (matrix_bridge_beeper_line_enabled and matrix_bridge_beeper_line_database_engine == 'postgres' and matrix_bridge_beeper_line_database_hostname == postgres_connection_hostname) else [])
+    +
+    ([{
       'name': matrix_bridge_wechat_database_name,
       'username': matrix_bridge_wechat_database_username,
       'password': matrix_bridge_wechat_database_password,
@@ -4280,6 +4462,12 @@ postgres_managed_databases_auto: |
       'username': matrix_bridge_mautrix_gvoice_database_username,
       'password': matrix_bridge_mautrix_gvoice_database_password,
     }] if (matrix_bridge_mautrix_gvoice_enabled and matrix_bridge_mautrix_gvoice_database_engine == 'postgres' and matrix_bridge_mautrix_gvoice_database_hostname == postgres_connection_hostname) else [])
+    +
+    ([{
+      'name': matrix_bridge_mautrix_linkedin_database_name,
+      'username': matrix_bridge_mautrix_linkedin_database_username,
+      'password': matrix_bridge_mautrix_linkedin_database_password,
+    }] if (matrix_bridge_mautrix_linkedin_enabled and matrix_bridge_mautrix_linkedin_database_engine == 'postgres' and matrix_bridge_mautrix_linkedin_database_hostname == postgres_connection_hostname) else [])
     +
     ([{
       'name': matrix_bridge_mautrix_whatsapp_database_name,
@@ -4452,6 +4640,21 @@ ntfy_container_labels_traefik_enabled: "{{ matrix_playbook_traefik_labels_enable
 ntfy_container_labels_traefik_docker_network: "{{ matrix_playbook_reverse_proxyable_services_additional_network }}"
 ntfy_container_labels_traefik_entrypoints: "{{ traefik_entrypoint_primary }}"
 ntfy_container_labels_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+
+# We have ntfy serve its metrics endpoint on a dedicated port, instead of on the regular HTTP port.
+# Were it served on the regular HTTP port, the endpoint would also become reachable at `https://ntfy.example.com/metrics`.
+# Nothing protects it there, because ntfy does not apply its own access-control rules to the metrics endpoint.
+ntfy_metrics_listen_http_port: "{{ 9090 if (prometheus_enabled or matrix_metrics_exposure_enabled) else '' }}"
+
+ntfy_container_labels_traefik_metrics_enabled: "{{ matrix_metrics_exposure_enabled }}"
+
+# For consistency with other things hosted at the Matrix FQN, we adjust the metrics endpoint
+# so that metrics would be served at something like `/metrics/SERVICE_NAME`, and not at the default path for the role (`/metrics`).
+ntfy_container_labels_traefik_metrics_hostname: "{{ matrix_server_fqn_matrix }}"
+ntfy_container_labels_traefik_metrics_path_prefix: "{{ matrix_metrics_exposure_path_prefix }}/ntfy"
+
+ntfy_container_labels_traefik_metrics_middleware_basic_auth_enabled: "{{ matrix_metrics_exposure_http_basic_auth_enabled }}"
+ntfy_container_labels_traefik_metrics_middleware_basic_auth_users: "{{ matrix_metrics_exposure_http_basic_auth_users }}"
 
 ntfy_visitor_request_limit_exempt_hosts_hostnames_auto: |
   {{
@@ -4976,9 +5179,7 @@ matrix_synapse_ext_synapse_http_antispam_config_async: "{{ matrix_bot_draupnir_s
 
 # Enable Synapse statistics reporting when using synapse-usage-exporter
 matrix_synapse_report_stats: "{{ matrix_synapse_usage_exporter_enabled }}"
-matrix_synapse_report_stats_endpoint: "{{ (('http://' + matrix_synapse_usage_exporter_identifier + ':' + matrix_synapse_usage_exporter_container_port | string + '/report-usage-stats/push') if matrix_synapse_usage_exporter_enabled else '') }}"
-
-matrix_synapse_experimental_features_msc3266_enabled: "{{ matrix_rtc_enabled }}"
+matrix_synapse_report_stats_endpoint: "{{ (('http://' + matrix_synapse_usage_exporter_identifier + ':' + matrix_synapse_usage_exporter_container_port | string + '/report-usage-stats/push') if matrix_synapse_usage_exporter_enabled else matrix_synapse_report_stats_endpoint_default) }}"
 
 matrix_synapse_matrix_authentication_service_enabled: "{{ matrix_authentication_service_enabled }}"
 matrix_synapse_matrix_authentication_service_endpoint: "{{ matrix_authentication_service_http_base_container_url if matrix_authentication_service_enabled else '' }}"
@@ -4986,11 +5187,13 @@ matrix_synapse_matrix_authentication_service_secret: "{{ matrix_authentication_s
 
 matrix_synapse_experimental_features_msc4108_enabled: "{{ matrix_authentication_service_enabled and not matrix_authentication_service_migration_in_progress }}"
 
-matrix_synapse_experimental_features_msc4140_enabled: "{{ matrix_rtc_enabled }}"
+matrix_synapse_delayed_events_enabled: "{{ matrix_rtc_enabled }}"
 
 matrix_synapse_experimental_features_msc4143_enabled: "{{ matrix_rtc_enabled }}"
 
 matrix_synapse_experimental_features_msc4222_enabled: "{{ matrix_rtc_enabled }}"
+
+matrix_synapse_experimental_features_msc4354_enabled: "{{ matrix_rtc_enabled }}"
 
 # Disable password authentication when delegating authentication to Matrix Authentication Service.
 # Unless this is done, Synapse fails on startup with:
@@ -5153,6 +5356,11 @@ matrix_ketesa_config_asManagedUsers_auto: |
     ] if matrix_bridge_beeper_linkedin_enabled else [])
     +
     ([
+      '^@'+(matrix_bridge_beeper_line_appservice_bot_username | default('') | regex_escape)+':'+(matrix_domain | regex_escape)+'$',
+      '^@line_[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
+    ] if matrix_bridge_beeper_line_enabled else [])
+    +
+    ([
       '^@heisenbridge:'+(matrix_domain | regex_escape)+'$',
       '^@hbirc_[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
     ] if matrix_bridge_heisenbridge_enabled else [])
@@ -5189,6 +5397,11 @@ matrix_ketesa_config_asManagedUsers_auto: |
       '^@'+(matrix_bridge_mautrix_gvoice_appservice_bot_username | default('') | regex_escape)+':'+(matrix_domain | regex_escape)+'$',
       '^@gvoice_[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
     ] if matrix_bridge_mautrix_gvoice_enabled else [])
+    +
+    ([
+      '^@'+(matrix_bridge_mautrix_linkedin_appservice_bot_username | default('') | regex_escape)+':'+(matrix_domain | regex_escape)+'$',
+      '^@linkedin_[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
+    ] if matrix_bridge_mautrix_linkedin_enabled else [])
     +
     ([
       '^@'+(matrix_bridge_mautrix_googlechat_appservice_bot_username | default('') | regex_escape)+':'+(matrix_domain | regex_escape)+'$',
@@ -5287,6 +5500,13 @@ matrix_synapse_usage_exporter_container_additional_networks: "{{ [matrix_playboo
 matrix_synapse_usage_exporter_container_labels_traefik_docker_network: "{{ matrix_playbook_reverse_proxyable_services_additional_network }}"
 matrix_synapse_usage_exporter_container_labels_traefik_entrypoints: "{{ traefik_entrypoint_primary }}"
 matrix_synapse_usage_exporter_container_labels_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+
+matrix_synapse_usage_exporter_metrics_proxying_enabled: "{{ matrix_metrics_exposure_enabled }}"
+matrix_synapse_usage_exporter_metrics_proxying_hostname: "{{ matrix_metrics_exposure_hostname }}"
+matrix_synapse_usage_exporter_metrics_proxying_path: "{{ matrix_metrics_exposure_path_prefix }}/synapse-usage-exporter"
+
+matrix_synapse_usage_exporter_container_labels_traefik_metrics_middleware_basic_auth_enabled: "{{ matrix_metrics_exposure_http_basic_auth_enabled }}"
+matrix_synapse_usage_exporter_container_labels_traefik_metrics_middleware_basic_auth_users: "{{ matrix_metrics_exposure_http_basic_auth_users }}"
 
 ######################################################################
 #
@@ -5465,6 +5685,8 @@ prometheus_container_additional_networks_auto: |
       ([matrix_media_repo_container_network] if matrix_prometheus_services_connect_scraper_media_repo_enabled and matrix_media_repo_container_network != prometheus_container_network else [])
       +
       ([matrix_synapse_usage_exporter_container_network] if matrix_prometheus_services_connect_scraper_synapse_usage_exporter_enabled and matrix_synapse_usage_exporter_container_network != prometheus_container_network else [])
+      +
+      ([ntfy_container_network] if matrix_prometheus_services_connect_scraper_ntfy_enabled and ntfy_container_network != prometheus_container_network else [])
     ) | unique
   }}
 
@@ -5491,6 +5713,8 @@ prometheus_config_scrape_configs_auto: |
     (matrix_prometheus_services_connect_scraper_media_repo_scrape_configs if matrix_prometheus_services_connect_scraper_media_repo_enabled else [])
     +
     (matrix_prometheus_services_connect_scraper_synapse_usage_exporter_scrape_configs if matrix_prometheus_services_connect_scraper_synapse_usage_exporter_enabled else [])
+    +
+    (matrix_prometheus_services_connect_scraper_ntfy_scrape_configs if matrix_prometheus_services_connect_scraper_ntfy_enabled else [])
   }}
 
 ######################################################################
@@ -5531,6 +5755,9 @@ matrix_prometheus_services_connect_scraper_media_repo_static_configs_target: "{{
 
 matrix_prometheus_services_connect_scraper_synapse_usage_exporter_enabled: "{{ matrix_synapse_usage_exporter_enabled }}"
 matrix_prometheus_services_connect_scraper_synapse_usage_exporter_static_configs_target: "{{ matrix_synapse_usage_exporter_identifier }}:{{ matrix_synapse_usage_exporter_container_port | string }}"
+
+matrix_prometheus_services_connect_scraper_ntfy_enabled: "{{ ntfy_enabled and ntfy_metrics_listen_http_port | string | length > 0 }}"
+matrix_prometheus_services_connect_scraper_ntfy_static_configs_target: "{{ ntfy_identifier }}:{{ ntfy_metrics_listen_http_port | string }}"
 
 ######################################################################
 #
@@ -5869,12 +6096,17 @@ matrix_tuwunel_container_labels_traefik_tls_certResolver: "{{ traefik_certResolv
 matrix_tuwunel_container_labels_public_client_root_redirection_enabled: "{{ matrix_tuwunel_container_labels_public_client_root_redirection_url != '' }}"
 matrix_tuwunel_container_labels_public_client_root_redirection_url: "{{ (('https://' if matrix_playbook_ssl_enabled else 'http://') + matrix_server_fqn_element) if matrix_client_element_enabled else '' }}"
 
+matrix_tuwunel_container_labels_public_client_synapse_admin_api_enabled: "{{ matrix_ketesa_enabled or matrix_element_admin_enabled }}"
+matrix_tuwunel_container_labels_internal_client_synapse_admin_api_enabled: "{{ (matrix_bot_draupnir_enabled and matrix_bot_draupnir_admin_api_enabled) }}"
+matrix_tuwunel_container_labels_internal_client_synapse_admin_api_traefik_entrypoints: "{{ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_name }}"
+
 matrix_tuwunel_container_labels_public_federation_api_traefik_hostname: "{{ matrix_server_fqn_matrix_federation }}"
 matrix_tuwunel_container_labels_public_federation_api_traefik_entrypoints: "{{ matrix_federation_traefik_entrypoint_name }}"
 matrix_tuwunel_container_labels_public_federation_api_traefik_tls: "{{ matrix_federation_traefik_entrypoint_tls }}"
 
 matrix_tuwunel_container_labels_internal_client_api_enabled: "{{ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_enabled }}"
 matrix_tuwunel_container_labels_internal_client_api_traefik_entrypoints: "{{ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_name }}"
+matrix_tuwunel_container_labels_internal_tuwunel_api_traefik_entrypoints: "{{ matrix_playbook_internal_matrix_client_api_traefik_entrypoint_name }}"
 
 matrix_tuwunel_config_well_known_livekit_url: "{{ matrix_livekit_jwt_service_public_url if matrix_livekit_jwt_service_enabled else '' }}"
 
@@ -6062,9 +6294,11 @@ matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_auto
 matrix_static_files_file_matrix_mautrix_property_fi_mau_bridges_auto: |-
   {{
     [
+      matrix_bridge_beeper_line_bridge_public_address if (matrix_bridge_beeper_line_enabled and matrix_bridge_beeper_line_container_labels_traefik_enabled and matrix_bridge_beeper_line_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_bluesky_appservice_public_address if (matrix_bridge_mautrix_bluesky_enabled and matrix_bridge_mautrix_bluesky_container_labels_traefik_enabled and matrix_bridge_mautrix_bluesky_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_gmessages_bridge_public_address if (matrix_bridge_mautrix_gmessages_enabled and matrix_bridge_mautrix_gmessages_container_labels_traefik_enabled and matrix_bridge_mautrix_gmessages_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_gvoice_bridge_public_address if (matrix_bridge_mautrix_gvoice_enabled and matrix_bridge_mautrix_gvoice_container_labels_traefik_enabled and matrix_bridge_mautrix_gvoice_container_labels_exposure_enabled) else '',
+      matrix_bridge_mautrix_linkedin_bridge_public_address if (matrix_bridge_mautrix_linkedin_enabled and matrix_bridge_mautrix_linkedin_container_labels_traefik_enabled and matrix_bridge_mautrix_linkedin_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_meta_instagram_bridge_public_address if (matrix_bridge_mautrix_meta_instagram_enabled and matrix_bridge_mautrix_meta_instagram_container_labels_traefik_enabled and matrix_bridge_mautrix_meta_instagram_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_meta_messenger_bridge_public_address if (matrix_bridge_mautrix_meta_messenger_enabled and matrix_bridge_mautrix_meta_messenger_container_labels_traefik_enabled and matrix_bridge_mautrix_meta_messenger_container_labels_exposure_enabled) else '',
       matrix_bridge_mautrix_signal_bridge_public_address if (matrix_bridge_mautrix_signal_enabled and matrix_bridge_mautrix_signal_container_labels_traefik_enabled and matrix_bridge_mautrix_signal_container_labels_exposure_enabled) else '',

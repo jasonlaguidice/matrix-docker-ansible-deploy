@@ -3471,6 +3471,12 @@ matrix_bot_meowlnir_container_additional_networks_auto: |-
 matrix_bot_meowlnir_config_homeserver_address: "{{ matrix_addons_homeserver_client_api_url }}"
 matrix_bot_meowlnir_config_homeserver_domain: "{{ matrix_domain }}"
 
+# Provisioning bots (`ensure-matrix-users-created`) requires the homeserver to accept Meowlnir's appservice registration, which it only reads on startup.
+# On the run which first enables Meowlnir, the homeserver is still running without it, so the role restarts these services to load it.
+# Restarting the main service suffices even with Synapse workers, because their units declare `Requires=matrix-synapse.service` and systemd propagates the restart to them.
+# Left empty for homeserver implementations whose appservice registrations the playbook does not manage (Conduit and its forks), where registration is a manual step anyway.
+matrix_bot_meowlnir_homeserver_restart_systemd_services_list: "{{ ['matrix-' ~ matrix_homeserver_implementation ~ '.service'] if matrix_homeserver_implementation in ['synapse', 'dendrite'] else [] }}"
+
 # Only consulted by bots configured with `management_room_auto_create`, and only as the
 # default for those which do not carry their own `initial_managers` list.
 # May legitimately be empty, in which case such bots fail validation and ask to be told who
@@ -5206,9 +5212,21 @@ matrix_synapse_ext_synapse_http_antispam_config_enabled_callbacks: "{{ matrix_bo
 matrix_synapse_ext_synapse_http_antispam_config_fail_open: "{{ matrix_bot_draupnir_synapse_http_antispam_config_fail_open if matrix_bot_draupnir_config_web_synapseHTTPAntispam_enabled else (matrix_bot_meowlnir_synapse_http_antispam_config_fail_open if matrix_bot_meowlnir_synapse_http_antispam_enabled else {}) }}"
 matrix_synapse_ext_synapse_http_antispam_config_async: "{{ matrix_bot_draupnir_synapse_http_antispam_config_async if matrix_bot_draupnir_config_web_synapseHTTPAntispam_enabled else (matrix_bot_meowlnir_synapse_http_antispam_config_async if matrix_bot_meowlnir_synapse_http_antispam_enabled else {}) }}"
 
-# Meowlnir's bots need these to support end-to-end encryption.
-matrix_synapse_experimental_features_msc2409_to_device_messages_enabled: "{{ matrix_bot_meowlnir_enabled and matrix_bot_meowlnir_config_encryption_enable }}"
-matrix_synapse_experimental_features_msc3202_transaction_extensions_enabled: "{{ matrix_bot_meowlnir_enabled and matrix_bot_meowlnir_config_encryption_enable }}"
+# Meowlnir's bots and Hookshot need these to support end-to-end encryption.
+# Synapse only sends the extra data to appservices which ask for it in their registration file,
+# so enabling these affects no other component.
+matrix_synapse_experimental_features_msc2409_to_device_messages_enabled: |-
+  {{
+    (matrix_bot_meowlnir_enabled and matrix_bot_meowlnir_config_encryption_enable)
+    or
+    (matrix_bridge_hookshot_enabled and matrix_bridge_hookshot_encryption_enabled)
+  }}
+matrix_synapse_experimental_features_msc3202_transaction_extensions_enabled: |-
+  {{
+    (matrix_bot_meowlnir_enabled and matrix_bot_meowlnir_config_encryption_enable)
+    or
+    (matrix_bridge_hookshot_enabled and matrix_bridge_hookshot_encryption_enabled)
+  }}
 
 # Enable Synapse statistics reporting when using synapse-usage-exporter
 matrix_synapse_report_stats: "{{ matrix_synapse_usage_exporter_enabled }}"
@@ -5222,7 +5240,7 @@ matrix_synapse_experimental_features_msc4108_enabled: "{{ matrix_authentication_
 
 matrix_synapse_delayed_events_enabled: "{{ matrix_rtc_enabled }}"
 
-matrix_synapse_experimental_features_msc4143_enabled: "{{ matrix_rtc_enabled }}"
+matrix_synapse_matrix_rtc_transports_livekit_url: "{{ matrix_livekit_jwt_service_public_url if matrix_livekit_jwt_service_enabled else '' }}"
 
 matrix_synapse_experimental_features_msc4222_enabled: "{{ matrix_rtc_enabled }}"
 
@@ -6318,14 +6336,6 @@ matrix_static_files_file_matrix_client_property_m_tile_server_map_style_url: "{{
 # We set this regardless of whether Ketesa is enabled, because people may wish to use a hosted (externally) Ketesa installation and still have it auto-configured.
 matrix_static_files_file_matrix_client_property_cc_etke_ketesa_auto: "{{ matrix_ketesa_configuration if matrix_homeserver_implementation == 'synapse' else {} }}"
 
-matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_enabled: "{{ matrix_livekit_jwt_service_enabled }}"
-matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_auto: |-
-  {{
-    (
-      [{'type': 'livekit', 'livekit_service_url': matrix_livekit_jwt_service_public_url}] if matrix_livekit_jwt_service_enabled else []
-    )
-  }}
-
 # Advertise all enabled and exposed mautrix bridges for auto-discovery by tools like Mautrix Manager.
 # A bridge's public address is only reachable when the playbook attaches its Traefik labels and emits the exposure router,
 # so we gate on these in addition to the bridge being enabled.
@@ -6699,6 +6709,8 @@ matrix_livekit_jwt_service_container_network: "{{ matrix_addons_container_networ
 
 matrix_livekit_jwt_service_container_additional_networks_auto: |
   {{
+    ([] if matrix_addons_homeserver_container_network == '' else [matrix_addons_homeserver_container_network])
+    +
     ([matrix_playbook_reverse_proxyable_services_additional_network] if (matrix_livekit_jwt_service_container_labels_traefik_enabled and matrix_playbook_reverse_proxyable_services_additional_network) else [])
   }}
 
@@ -6708,6 +6720,13 @@ matrix_livekit_jwt_service_container_labels_traefik_entrypoints: "{{ traefik_ent
 matrix_livekit_jwt_service_container_labels_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
 
 matrix_livekit_jwt_service_environment_variable_livekit_url: "{{ livekit_server_websocket_public_url }}"
+
+# The service discovers where a homeserver's Client-Server API lives by fetching the `/.well-known/matrix/client`
+# file of that homeserver's base domain over the public network.
+# For our own homeserver, we already know the answer and can spare it the round trip, which would otherwise
+# need to leave the server and come back to it.
+# Other (federated) homeservers are still resolved via discovery.
+matrix_livekit_jwt_service_environment_variable_livekit_cs_api_url_overrides_map_auto: "{{ {matrix_domain: matrix_addons_homeserver_client_api_url} }}"
 
 matrix_livekit_jwt_service_environment_variable_livekit_key: "{{ (matrix_homeserver_generic_secret_key + ':lk.key') | hash('sha512') | to_uuid }}"
 

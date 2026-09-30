@@ -22,7 +22,7 @@ roles:
     #!/usr/bin/env sh
     echo "[NOTE] This command just updates the roles, but if you want to update everything at once (playbook, roles, etc.) - use 'just update'"
     if [ -x "$(command -v agru)" ]; then
-        agru -no-tui
+        agru -p roles/galaxy/ -no-tui
     else
         rm -rf roles/galaxy
         ansible-galaxy install -r requirements.yml -p roles/galaxy/ --force
@@ -33,7 +33,7 @@ update *flags: update-playbook-only
     #!/usr/bin/env sh
     if [ -x "$(command -v agru)" ]; then
         echo {{ if flags == "" { "Installing roles pinned in requirements.yml…" } else { if flags == "-u" { "Updating roles and pinning new versions in requirements.yml…" } else { "Unknown flags passed" } } }}
-        agru -no-tui {{ flags }}
+        agru -p roles/galaxy/ -no-tui {{ flags }}
     else
         echo "[NOTE] You are using the standard ansible-galaxy tool to install roles, which is slow and lacks other features. We recommend installing the 'agru' tool to speed up the process: https://github.com/etkecc/agru#where-to-get"
         echo "Installing roles…"
@@ -134,6 +134,14 @@ stop-all *extra_args: (run-tags "stop-all" extra_args)
 # Stops a specific service group
 stop-group group *extra_args:
     @{{ just_executable() }} --justfile "{{ justfile() }}" run-tags stop-group --extra-vars="group={{ group }}" {{ extra_args }}
+
+# Runs a role's Molecule scenario locally (no argument lists the roles that have one)
+molecule *args:
+    @{{ justfile_directory() }}/bin/molecule.sh {{ args }}
+
+# Removes the Molecule virtualenv and per-role Ansible homes from var/
+molecule-clean *args:
+    @{{ justfile_directory() }}/bin/molecule-clean.sh {{ args }}
 
 # Internal - ensures var/mise and var/prek directories exist
 _ensure_mise_data_directory:

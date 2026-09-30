@@ -32,6 +32,8 @@
     - {'old': 'matrix_bot_maubot_docker_src_files_path', 'new': 'matrix_bot_maubot_container_src_files_path'}
     - {'old': 'matrix_bot_maubot_customized_docker_src_files_path', 'new': 'matrix_bot_maubot_customized_container_src_files_path'}
     - {'old': 'matrix_bot_maubot_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
+    - {'old': 'matrix_bot_maubot_bot_server_base_path', 'new': '<removed> (maubot no longer supports a custom management API path)'}
+    - {'old': 'matrix_bot_maubot_bot_server_appservice_base_path', 'new': '<removed> (maubot no longer supports a custom appservice API path)'}
 
 - name: Fail if required maubot settings not defined
   ansible.builtin.fail:
@@ -48,3 +50,10 @@
     - {'name': 'matrix_bot_maubot_homeserver_name', when: true}
     - {'name': 'matrix_bot_maubot_homeserver_url', when: true}
     - {'name': 'matrix_bot_maubot_initial_password', when: true}
+
+# The prefix is used verbatim in the redirect regex, the strip prefix and the public URL.
+- name: Fail if matrix_bot_maubot_path_prefix ends with a slash
+  ansible.builtin.fail:
+    msg: >-
+      matrix_bot_maubot_path_prefix (`{{ matrix_bot_maubot_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/_matrix/maubot`).
+  when: "matrix_bot_maubot_path_prefix != '/' and matrix_bot_maubot_path_prefix[-1] == '/'"

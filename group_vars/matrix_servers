@@ -5413,7 +5413,7 @@ matrix_ketesa_config_asManagedUsers_auto: |
     +
     ([
       '^@'+(matrix_bridge_beeper_line_appservice_bot_username | default('') | regex_escape)+':'+(matrix_domain | regex_escape)+'$',
-      '^@line_[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
+      '^@'+(matrix_bridge_beeper_line_appservice_username_prefix | default('') | regex_escape)+'[a-zA-Z0-9]+:'+(matrix_domain | regex_escape)+'$',
     ] if matrix_bridge_beeper_line_enabled else [])
     +
     ([
@@ -6434,6 +6434,18 @@ traefik_additional_entrypoints_auto: |
     ([matrix_playbook_livekit_turn_traefik_entrypoint_definition] if matrix_playbook_livekit_turn_traefik_entrypoint_enabled else [])
   }}
 
+# A TLS option for the LiveKit TURN/TLS router: Traefik's default TLS options reject the `stun.turn` ALPN protocol.
+traefik_config_tls_options_auto: |
+  {{
+    (
+      {
+        matrix_playbook_livekit_turn_traefik_tls_options_name: {
+          'alpnProtocols': matrix_playbook_livekit_turn_traefik_tls_options_alpn_protocols,
+        }
+      } if livekit_server_container_labels_turn_traefik_enabled else {}
+    )
+  }}
+
 traefik_config_providers_docker_endpoint: "{{ container_socket_proxy_endpoint if container_socket_proxy_enabled else 'unix:///var/run/docker.sock' }}"
 
 traefik_container_image_registry_prefix_upstream: "{{ matrix_container_global_registry_prefix_override if matrix_container_global_registry_prefix_override else traefik_container_image_registry_prefix_upstream_default }}"
@@ -6621,6 +6633,7 @@ livekit_server_container_labels_traefik_tls_certResolver: "{{ traefik_certResolv
 livekit_server_container_labels_turn_traefik_enabled: "{{ matrix_playbook_livekit_turn_traefik_entrypoint_enabled }}"
 livekit_server_container_labels_turn_traefik_entrypoints: "{{ matrix_playbook_livekit_turn_traefik_entrypoint_name }}"
 livekit_server_container_labels_turn_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+livekit_server_container_labels_turn_traefik_tls_options: "{{ (matrix_playbook_livekit_turn_traefik_tls_options_name + '@file') if livekit_server_container_labels_turn_traefik_enabled else '' }}"
 
 livekit_server_container_labels_public_metrics_middleware_basic_auth_enabled: "{{ matrix_metrics_exposure_http_basic_auth_enabled }}"
 livekit_server_container_labels_public_metrics_middleware_basic_auth_users: "{{ matrix_metrics_exposure_http_basic_auth_users }}"
@@ -6640,7 +6653,8 @@ livekit_server_config_keys_auto: |-
     )
   }}
 
-# We only wish for matrix-livekit-jwt-service to create rooms, only for users on trusted homeservers.
+# Only users on trusted homeservers may publish media or trigger room creation on this SFU.
+# Other federated users subscribe here and publish on their own SFU.
 # See `matrix_livekit_jwt_service_environment_variable_livekit_full_access_homeservers`.
 #
 # Ref:

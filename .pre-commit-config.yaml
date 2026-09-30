@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: reuse
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.8.0
+    rev: v26.9.0
     hooks:
       - id: ansible-lint
         files: '^roles/custom/'
@@ -37,4 +37,16 @@ repos:
         entry: bin/check-examples-vars-migration-version.sh
         language: script
         files: '(examples/vars\.yml|roles/custom/matrix_playbook_migration/defaults/main\.yml)'
+        pass_filenames: false
+      - id: check-molecule-automerge-list
+        name: Check the Molecule automerge rules match the roles that have a scenario
+        entry: bin/check-molecule-automerge-list.py
+        language: script
+        files: '(\.github/renovate\.json|bin/check-molecule-automerge-list\.py|roles/custom/[^/]+/molecule/default/molecule\.yml)'
+        pass_filenames: false
+      - id: test-molecule-select-roles
+        name: Test Molecule scenario selection
+        entry: python3 bin/test-molecule-select-roles.py
+        language: system
+        files: '(\.github/workflows/molecule\.yml|bin/(test-)?molecule-select-roles\.py)'
         pass_filenames: false

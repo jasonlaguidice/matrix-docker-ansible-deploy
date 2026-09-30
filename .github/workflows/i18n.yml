@@ -12,9 +12,11 @@ on:  # yamllint disable-line rule:truthy
   push:
     paths:
       - "i18n/**"
+      - ".github/workflows/i18n.yml"
   pull_request:
     paths:
       - "i18n/**"
+      - ".github/workflows/i18n.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +25,7 @@ permissions:
 jobs:
   extract-translation-templates:
     name: Extract translation templates
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     # Same-repository pull requests already run via the push event;
     # run pull_request jobs only for pull requests from forks.
@@ -38,7 +40,7 @@ jobs:
         with:
           python-version: '3.14'
 
-      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
       - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
 

@@ -37,6 +37,13 @@ matrix_bridge_snapchat_self_sign_enabled: "{{ matrix_bridges_self_sign_enabled }
 # The talkcore host is a Node service bundled in the container image. The bridge spawns it as a child process on loopback.
 matrix_bridge_snapchat_network_talkcore_service_address: "http://127.0.0.1:29333"
 matrix_bridge_snapchat_network_talkcore_startup_timeout: 60
+# Display name template for Snapchat contacts (a Go text/template).
+# Available template variables:
+# {{.DisplayName}} - The contact's Snapchat display name
+# {{.Username}}    - The contact's Snapchat username
+# You can use template functions like {{or}} to provide fallbacks.
+matrix_bridge_snapchat_network_displayname_template: "{% raw %}{{ or .DisplayName .Username }} (Snapchat){% endraw %}"
+
 # Where the talkcore host keeps its private identity keys and downloaded Snapchat assets (inside the data path mount).
 matrix_bridge_snapchat_network_talkcore_store_dir: /app/data/talkcore-data
 

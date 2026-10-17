@@ -61,6 +61,7 @@ provisioner:
         # The talkcore host runs on loopback inside the container, so these three
         # overrides prove the rendered network section carries the scenario's values
         # rather than the role's defaults (the constants are asserted in verify.yml).
+        matrix_bridge_snapchat_network_displayname_template: "{% raw %}{{ or .DisplayName .Username }} via Molecule{% endraw %}"
         matrix_bridge_snapchat_network_talkcore_service_address: http://127.0.0.1:29555
         matrix_bridge_snapchat_network_talkcore_startup_timeout: 45
         matrix_bridge_snapchat_network_talkcore_store_dir: /app/data/molecule-talkcore

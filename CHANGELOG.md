@@ -1,11 +1,3 @@
-# 2026-10-25
-
-## Support for bridging to Snapchat
-
-Thanks to [jasonlaguidice](https://github.com/jasonlaguidice), the playbook now supports bridging to [Snapchat](https://www.snapchat.com/) via a new [mautrix-go](https://github.com/mautrix/go)-based bridge ([jasonlaguidice/matrix-snapchat-bridge](https://github.com/jasonlaguidice/matrix-snapchat-bridge)).
-
-The bridge is disabled by default. To learn more, see our [Setting up Snapchat bridging](./docs/configuring-playbook-bridge-snapchat.md) documentation page.
-
 # 2026-10-19
 
 ## `just start-all` and `just start-group` restart all targeted services again

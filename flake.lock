@@ -3,15 +3,16 @@
     "agru-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1790348813,
-        "narHash": "sha256-aE2DlJKq2xEvgXAjQTzYRQZbFw11uTWZqVeNL9xWG0Y=",
+        "lastModified": 1789921812,
+        "narHash": "sha256-Bdk5nD1V91fJtLKPHCrxriKb9ROTroKkQAEZFapn9eo=",
         "owner": "etkecc",
         "repo": "agru",
-        "rev": "7bfa81dee636755c3bb93773c29dcd09cac0d355",
+        "rev": "d6382f57eab617ee1377da3903fbf2eb8b77da31",
         "type": "github"
       },
       "original": {
         "owner": "etkecc",
+        "ref": "v0.3.0",
         "repo": "agru",
         "type": "github"
       }
@@ -36,11 +37,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1792116957,
-        "narHash": "sha256-EjZqHKObBfIOeHZnMRVV87HB3pPq/WBkmRJWyFxmZu8=",
+        "lastModified": 1792812153,
+        "narHash": "sha256-T2+XBfNbf9pecLUWS4+RtuVNZ3W8K5taG5QdV71mWlk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f20cd90e28fe0403873f473b29e42662cd86e8c4",
+        "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
         "type": "github"
       },
       "original": {

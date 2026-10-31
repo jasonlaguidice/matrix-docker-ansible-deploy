@@ -43,6 +43,9 @@ main() {
 	}
 
 	git checkout -q --no-track -B deploy "$base"
+	# Point `deploy` at your fork, never at upstream (checkout -B would otherwise inherit upstream/master).
+	git config branch.deploy.remote origin
+	git config branch.deploy.merge refs/heads/deploy
 
 	for b in "${branches[@]}"; do
 		ref="$(resolve_ref "$b")"

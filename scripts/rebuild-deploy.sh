@@ -42,7 +42,7 @@ main() {
 		else echo "Branch '$1' not found locally or on origin." >&2; return 1; fi
 	}
 
-	git checkout -q -B deploy "$base"
+	git checkout -q --no-track -B deploy "$base"
 
 	for b in "${branches[@]}"; do
 		ref="$(resolve_ref "$b")"

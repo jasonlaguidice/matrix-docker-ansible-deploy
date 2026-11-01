@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Rebuilds the local `deploy` branch: upstream/master + every branch in scripts/deploy-branches.txt.
 # Stops on the first conflict; rerere remembers resolutions, so re-run after resolving.
+# On success it force-pushes `deploy` to origin (this branch is single-user); pass --no-push to skip.
 set -euo pipefail
 
 stashed=0
 
 main() {
-	local repo list base status=0 b ref role
+	local repo list base status=0 b ref role push=1
+	[ "${1:-}" = "--no-push" ] && push=0
 	repo="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
 	cd "$repo"
 	list="$repo/scripts/deploy-branches.txt"
@@ -71,8 +73,11 @@ main() {
 			elif ! grep -q "$role" setup.yml; then echo "NOT in setup.yml: $role (from $b)" >&2; status=1; fi
 		done < <(git diff --name-only --diff-filter=A "$base...$ref" -- 'roles/custom/*/tasks/main.yml' | cut -d/ -f3)
 	done
-	[ "$status" -eq 0 ] && echo "deploy rebuilt OK from $base + ${#branches[@]} branch(es)."
-	return "$status"
+	[ "$status" -eq 0 ] || return "$status"
+	echo "deploy rebuilt OK from $base + ${#branches[@]} branch(es)."
+	if [ "$push" -eq 1 ]; then
+		git push --force-with-lease -u origin deploy
+	fi
 }
 
 main "$@"

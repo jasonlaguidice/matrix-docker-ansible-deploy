@@ -1,0 +1,75 @@
+{#
+SPDX-FileCopyrightText: 2026 MDAD project contributors
+SPDX-FileCopyrightText: 2026 Jason LaGuidice
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+#}
+
+{% if matrix_bridge_snapchat_container_labels_traefik_enabled %}
+traefik.enable=true
+
+{% if matrix_bridge_snapchat_container_labels_traefik_docker_network %}
+traefik.docker.network={{ matrix_bridge_snapchat_container_labels_traefik_docker_network }}
+{% endif %}
+
+traefik.http.services.matrix-snapchat-bridge.loadbalancer.server.port={{ matrix_bridge_snapchat_appservice_port }}
+
+{% if matrix_bridge_snapchat_public_media_enabled %}
+############################################################
+#                                                          #
+# Public Media                                             #
+#                                                          #
+############################################################
+
+# Router for public media
+traefik.http.routers.matrix-snapchat-bridge-public-media.rule=Host(`{{ matrix_server_fqn_matrix }}`) && PathPrefix(`/_mautrix/publicmedia/{{ matrix_domain }}/`)
+traefik.http.routers.matrix-snapchat-bridge-public-media.service=matrix-snapchat-bridge
+traefik.http.routers.matrix-snapchat-bridge-public-media.entrypoints={{ matrix_bridge_snapchat_container_labels_traefik_entrypoints }}
+traefik.http.routers.matrix-snapchat-bridge-public-media.tls={{ matrix_bridge_snapchat_container_labels_traefik_tls | to_json }}
+{% if matrix_bridge_snapchat_container_labels_traefik_tls %}
+traefik.http.routers.matrix-snapchat-bridge-public-media.tls.certResolver={{ matrix_bridge_snapchat_container_labels_traefik_tls_certResolver }}
+{% endif %}
+
+
+############################################################
+#                                                          #
+# /Public Media                                            #
+#                                                          #
+############################################################
+{% endif %}
+
+{% if matrix_bridge_snapchat_container_labels_exposure_enabled %}
+############################################################
+#                                                          #
+# Bridge API exposure                                      #
+#                                                          #
+############################################################
+
+traefik.http.middlewares.matrix-snapchat-bridge-exposure-strip-prefix.stripprefix.prefixes={{ matrix_bridge_snapchat_exposure_path_prefix }}
+traefik.http.routers.matrix-snapchat-bridge-exposure.middlewares=matrix-snapchat-bridge-exposure-strip-prefix
+
+traefik.http.routers.matrix-snapchat-bridge-exposure.rule={{ matrix_bridge_snapchat_container_labels_exposure_traefik_rule }}
+
+{% if matrix_bridge_snapchat_container_labels_exposure_traefik_priority | int > 0 %}
+traefik.http.routers.matrix-snapchat-bridge-exposure.priority={{ matrix_bridge_snapchat_container_labels_exposure_traefik_priority }}
+{% endif %}
+
+traefik.http.routers.matrix-snapchat-bridge-exposure.service=matrix-snapchat-bridge
+traefik.http.routers.matrix-snapchat-bridge-exposure.entrypoints={{ matrix_bridge_snapchat_container_labels_exposure_traefik_entrypoints }}
+
+traefik.http.routers.matrix-snapchat-bridge-exposure.tls={{ matrix_bridge_snapchat_container_labels_exposure_traefik_tls | to_json }}
+{% if matrix_bridge_snapchat_container_labels_exposure_traefik_tls %}
+traefik.http.routers.matrix-snapchat-bridge-exposure.tls.certResolver={{ matrix_bridge_snapchat_container_labels_exposure_traefik_tls_certResolver }}
+{% endif %}
+
+############################################################
+#                                                          #
+# /Bridge API exposure                                     #
+#                                                          #
+############################################################
+{% endif %}
+
+
+{% endif %}
+
+{{ matrix_bridge_snapchat_container_labels_additional_labels }}

@@ -176,6 +176,8 @@ Bridges can be used to connect your Matrix installation with third-party communi
 
 - [Setting up MX Puppet GroupMe bridging](configuring-playbook-bridge-mx-puppet-groupme.md)
 
+- [Setting up Snapchat bridging](configuring-playbook-bridge-snapchat.md)
+
 - [Setting up Steam bridging](configuring-playbook-bridge-steam.md)
 
 - [Setting up MX Puppet Steam bridging](configuring-playbook-bridge-mx-puppet-steam.md)

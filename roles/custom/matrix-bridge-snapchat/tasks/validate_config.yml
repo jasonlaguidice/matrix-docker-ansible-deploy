@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 MDAD project contributors
+# SPDX-FileCopyrightText: 2026 Jason LaGuidice
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+
+- name: Fail if required matrix_bridge_snapchat settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item.name }}`).
+  when: "item.when | bool and lookup('vars', item.name, default='') | string | length == 0"
+  with_items:
+    - {'name': 'matrix_bridge_snapchat_appservice_token', when: true}
+    - {'name': 'matrix_bridge_snapchat_homeserver_address', when: true}
+    - {'name': 'matrix_bridge_snapchat_homeserver_token', when: true}
+    - {'name': 'matrix_bridge_snapchat_database_hostname', when: "{{ matrix_bridge_snapchat_database_engine == 'postgres' }}"}
+    - {'name': 'matrix_bridge_snapchat_container_network', when: true}

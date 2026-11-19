@@ -84,6 +84,7 @@
     - custom/matrix-bridge-mx-puppet-steam
     - custom/matrix-bridge-postmoogle
     - custom/matrix-bridge-sms
+    - custom/matrix-bridge-snapchat
     - custom/matrix-bridge-steam
     - custom/matrix-bridge-heisenbridge
     - custom/matrix-bridge-hookshot

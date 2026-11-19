@@ -1,0 +1,4 @@
+# Branches merged into `deploy`, in order, one per line. Blank lines and # comments are ignored.
+snapchat-bridge
+feature/matrix-bridge-voicebridge
+tools/deploy-script
